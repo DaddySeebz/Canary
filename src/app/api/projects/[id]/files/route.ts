@@ -13,6 +13,9 @@ import {
 import { getProjectById, touchProject } from "@/lib/db/projects";
 import { listProjectRules } from "@/lib/db/rules";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },

@@ -9,6 +9,9 @@ import {
 } from "@/lib/db/insights";
 import { getLatestRun, listCompletedRuns } from "@/lib/db/runs";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },

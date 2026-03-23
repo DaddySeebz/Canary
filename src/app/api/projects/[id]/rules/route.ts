@@ -5,6 +5,8 @@ import { touchProject } from "@/lib/db/projects";
 import { createRule, listProjectRules } from "@/lib/db/rules";
 import { genericRuleSchema, validateRuleConfig } from "@/lib/rules/schemas";
 
+export const runtime = "nodejs";
+
 const createRuleSchema = genericRuleSchema;
 
 export async function GET(

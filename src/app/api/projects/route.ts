@@ -4,6 +4,8 @@ import { z } from "zod";
 import { logActivity } from "@/lib/db/activity";
 import { createProject, listProjectsWithStats } from "@/lib/db/projects";
 
+export const runtime = "nodejs";
+
 const createProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),

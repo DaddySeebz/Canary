@@ -4,6 +4,8 @@ import { diffSchema } from "@/lib/csv/schema-diff";
 import { getFileById, getPreviousFileVersion } from "@/lib/db/files";
 import { listProjectRules } from "@/lib/db/rules";
 
+export const runtime = "nodejs";
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },

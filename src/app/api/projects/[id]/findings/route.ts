@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import { getFindingsBundle } from "@/lib/db/runs";
 
+export const runtime = "nodejs";
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { logActivity } from "@/lib/db/activity";
 import { getROISettings, upsertROISettings } from "@/lib/db/roi";
 
+export const runtime = "nodejs";
+
 const roiSchema = z.object({
   cost_per_error: z.number().min(0),
   time_per_fix_minutes: z.number().min(0),

@@ -14,6 +14,9 @@ import { touchProject } from "@/lib/db/projects";
 import { createRule } from "@/lib/db/rules";
 import { genericRuleSchema, validateRuleConfig } from "@/lib/rules/schemas";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const requestSchema = z.object({
   projectId: z.string().min(1),
   messages: z.array(z.custom<UIMessage>()),

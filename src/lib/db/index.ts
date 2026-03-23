@@ -3,10 +3,15 @@ import path from "node:path";
 
 import Database from "better-sqlite3";
 
+import { getDefaultDatabasePath } from "@/lib/runtime";
+
 let database: Database.Database | null = null;
 
 function resolveDatabasePath() {
-  return path.resolve(/* turbopackIgnore: true */ process.cwd(), process.env.DATABASE_PATH || "./data/audit.db");
+  const configuredPath = process.env.DATABASE_PATH || getDefaultDatabasePath();
+  return path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(/* turbopackIgnore: true */ process.cwd(), configuredPath);
 }
 
 export function parseJsonColumn<T>(value: string | null | undefined, fallback: T): T {

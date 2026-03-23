@@ -6,6 +6,8 @@ import { touchProject } from "@/lib/db/projects";
 import { deleteRule, getRuleById, updateRule } from "@/lib/db/rules";
 import { validateRuleConfig } from "@/lib/rules/schemas";
 
+export const runtime = "nodejs";
+
 const updateRuleSchema = z.object({
   description_plain: z.string().min(1).optional(),
   rule_type: z

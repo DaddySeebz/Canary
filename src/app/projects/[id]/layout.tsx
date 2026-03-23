@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DeploymentBanner } from "@/components/layout/deployment-banner";
 import { ProjectNav } from "@/components/layout/project-nav";
 import { getProjectById } from "@/lib/db/projects";
 
@@ -23,6 +24,7 @@ export default async function ProjectLayout({
   return (
     <main className="min-h-[100dvh] px-4 py-6 md:px-8">
       <div className="mx-auto max-w-[1400px] space-y-6">
+        <DeploymentBanner />
         <header className="space-y-4">
           <div className="text-sm text-muted-foreground">
             <Link href="/" className="hover:text-foreground">

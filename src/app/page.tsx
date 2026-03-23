@@ -1,5 +1,6 @@
 import { ArrowRight, ChartColumnBig, ShieldAlert, Sparkles } from "lucide-react";
 
+import { DeploymentBanner } from "@/components/layout/deployment-banner";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-[100dvh] px-4 py-8 md:px-8">
+      <div className="mx-auto mb-6 max-w-[1400px]">
+        <DeploymentBanner />
+      </div>
       <div className="surface-grid mx-auto grid max-w-[1400px] gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,oklch(0.18_0.01_75),oklch(0.14_0.006_75))] p-8 md:p-10">
           <div className="max-w-[42rem] space-y-6">

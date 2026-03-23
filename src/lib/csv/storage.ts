@@ -3,10 +3,17 @@ import path from "node:path";
 
 import { v4 as uuidv4 } from "uuid";
 
+import { getDefaultUploadDir } from "@/lib/runtime";
+
 function getBaseUploadDir() {
+  const configuredPath = process.env.UPLOAD_DIR || getDefaultUploadDir();
+  if (path.isAbsolute(configuredPath)) {
+    return configuredPath;
+  }
+
   return path.resolve(
     /* turbopackIgnore: true */ process.cwd(),
-    process.env.UPLOAD_DIR || "./data/uploads",
+    configuredPath,
   );
 }
 
