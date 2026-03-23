@@ -15,7 +15,7 @@ export function DeploymentBanner() {
         <div className="space-y-1">
           <div className="text-sm font-semibold text-amber-100">Vercel preview mode</div>
           <p className="text-sm text-amber-50/80">
-            Canary is running on Vercel with database and upload storage redirected to <span className="font-mono">/tmp</span>. That keeps the deployment functional for demos, but data is ephemeral and not durable across cold starts or instances.
+            Canary is running on Vercel with database and upload storage redirected to <span className="font-mono">/tmp</span>. This preview ships with a seeded demo workspace so every function instance stays reviewable, but any changes you make here are still disposable.
           </p>
         </div>
       </div>

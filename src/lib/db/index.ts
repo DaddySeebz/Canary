@@ -3,7 +3,9 @@ import path from "node:path";
 
 import Database from "better-sqlite3";
 
+import { ensureVercelDemoSeed } from "@/lib/demo/vercel-seed";
 import { getDefaultDatabasePath } from "@/lib/runtime";
+import { schemaSql } from "@/lib/db/schema";
 
 let database: Database.Database | null = null;
 
@@ -42,8 +44,8 @@ export function getDatabase() {
   database.pragma("journal_mode = WAL");
   database.pragma("foreign_keys = ON");
 
-  const schema = fs.readFileSync(new URL("./schema.sql", import.meta.url), "utf8");
-  database.exec(schema);
+  database.exec(schemaSql);
+  ensureVercelDemoSeed(database);
 
   return database;
 }
