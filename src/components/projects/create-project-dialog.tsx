@@ -41,10 +41,16 @@ export function CreateProjectDialog({ triggerLabel = "Create Project" }: { trigg
         throw new Error("Could not create project.");
       }
 
+      const payload = (await response.json()) as { project?: { id: string } };
+      const projectId = payload.project?.id;
+
       setOpen(false);
       setName("");
       setDescription("");
       toast.success("Project created.");
+      if (projectId) {
+        router.push(`/projects/${projectId}/setup`);
+      }
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not create project.");
