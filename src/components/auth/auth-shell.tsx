@@ -60,7 +60,8 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
               Start your first audit in <span className="text-primary">15 minutes.</span>
             </h1>
             <p className="text-lg leading-9 text-zinc-300">
-              Stop finding out about data issues in board meetings. Empower your operations team with instrumental precision and live operational memory.
+              Stop finding out about data issues in board meetings. Empower your operations team with
+              instrumental precision and live operational memory.
             </p>
           </div>
 
@@ -71,11 +72,14 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
               ))}
             </div>
             <p className="mt-5 text-lg leading-8 text-zinc-100">
-              “Canary moved our team from reactive fire-fighting to proactive data stewardship. The early warning system is non-negotiable now.”
+              &ldquo;Canary moved our team from reactive fire-fighting to proactive data stewardship. The
+              early warning system is non-negotiable now.&rdquo;
             </p>
             <div className="mt-6">
               <div className="text-base font-semibold text-white">Mara Ellison</div>
-              <div className="text-xs uppercase tracking-[0.22em] text-zinc-500">Director of Analytics, Vantage Ledger</div>
+              <div className="text-xs uppercase tracking-[0.22em] text-zinc-500">
+                Director of Analytics, Vantage Ledger
+              </div>
             </div>
           </div>
         </section>
@@ -122,7 +126,15 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
               </Link>
             </p>
             <p className="text-xs leading-6 text-slate-400">
-              By continuing you agree to our <Link href="/terms" className="underline">Terms of Service</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+              By continuing you agree to our{" "}
+              <Link href="/terms" className="underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="underline">
+                Privacy Policy
+              </Link>
+              .
             </p>
           </div>
         </section>

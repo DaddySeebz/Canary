@@ -9,3 +9,6 @@ pnpm-debug.log*
 dist
 coverage
 tsconfig.tsbuildinfo
+
+# clerk configuration (can include secrets)
+/.clerk/
