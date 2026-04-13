@@ -1,25 +1,67 @@
 import Link from "next/link";
 import {
-  AlertTriangle,
+  Activity,
   ArrowRight,
-  BadgeCheck,
-  Bot,
+  BellRing,
+  BrainCircuit,
   CheckCircle2,
-  Clock3,
   FolderSearch2,
-  ShieldCheck,
+  ShieldAlert,
   Sparkles,
 } from "lucide-react";
 
 import { CanaryLogo } from "@/components/branding/canary-logo";
-import { DeploymentBanner } from "@/components/layout/deployment-banner";
-import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
-import { ProjectCard } from "@/components/projects/project-card";
 import { buttonVariants } from "@/components/ui/button";
-import type { ProjectSummary } from "@/lib/db/types";
 import { cn } from "@/lib/utils";
 
-function SectionIntro({
+const comparisonCards = [
+  {
+    eyebrow: "The status quo",
+    title: "Manual Monday audit",
+    points: [
+      "Ops reviews exports after the board packet already moved.",
+      "Anomaly review lives in a spreadsheet and tribal memory.",
+      "Corrections arrive after leadership already saw the number.",
+    ],
+    result: "Result: perpetual friction",
+  },
+  {
+    eyebrow: "The Canary way",
+    title: "Automated early warning",
+    points: [
+      "Rule logic watches every CSV and reconciliation feed.",
+      "Risky deltas surface before they reach the executive rollup.",
+      "Audit context, remediation notes, and ownership stay attached.",
+    ],
+    result: "Result: total control",
+  },
+];
+
+const pillars = [
+  {
+    eyebrow: "Anomaly detection",
+    title: "Early warning, not late discovery",
+    body:
+      "Detect drift the moment the pipeline stops behaving like itself, not after a broken export has already cascaded downstream.",
+  },
+  {
+    eyebrow: "Audit-ready",
+    title: "Timestamped proof",
+    body: "Keep a defensible record of what changed, when it changed, and who resolved it.",
+  },
+  {
+    eyebrow: "Process logic",
+    title: "Policy encoded once",
+    body: "Turn natural-language monitoring instructions into durable checks that stay close to the data.",
+  },
+  {
+    eyebrow: "Quantifiable relief",
+    title: "Give executive time back",
+    body: "Translate recurring data damage into hours saved, risk reduced, and confidence restored.",
+  },
+];
+
+function Panel({
   eyebrow,
   title,
   body,
@@ -29,392 +71,285 @@ function SectionIntro({
   body: string;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="glass-panel rounded-[0.75rem] border border-white/8 p-6">
       <div className="text-[11px] uppercase tracking-[0.28em] text-amber-200/90">{eyebrow}</div>
-      <h2 className="max-w-[16ch] text-3xl font-semibold tracking-tight md:text-4xl">{title}</h2>
-      <p className="max-w-[62ch] text-sm leading-7 text-muted-foreground md:text-base">{body}</p>
+      <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">{title}</h3>
+      <p className="mt-3 text-sm leading-7 text-zinc-300">{body}</p>
     </div>
   );
 }
 
-export function LandingPage({ projects }: { projects: ProjectSummary[] }) {
-  const primaryProject = projects[0] ?? null;
-  const dashboardHref = primaryProject ? `/projects/${primaryProject.id}` : null;
-  const setupHref = primaryProject ? `/projects/${primaryProject.id}/setup` : null;
-  const historyHref = primaryProject ? `/projects/${primaryProject.id}/history` : null;
-
-  const personas = [
-    {
-      title: "The Revenue Operator",
-      role: "RevOps / Revenue Operations",
-      description:
-        "Lives inside Salesforce, HubSpot, Clari, and spreadsheets. Measures themselves by whether leadership trusts the number.",
-      stats: ["Series B-D", "100-1,000 employees", "Reports to CRO or VP Sales"],
-    },
-    {
-      title: "The Sales Architect",
-      role: "SalesOps / Sales Operations",
-      description:
-        "Knows where the process breaks, carries the Monday audit, and gets pulled in every time the forecast looks off.",
-      stats: ["Series A-D", "50-2,000 employees", "Champion buyer"],
-    },
-    {
-      title: "The Finance Controller",
-      role: "FinOps / Finance Operations",
-      description:
-        "Owns financial truth, auditability, and the downstream fallout when exports, mappings, or reconciliations drift.",
-      stats: ["Series B-D", "100-2,000 employees", "Reports to CFO or VP Finance"],
-    },
-  ];
-
-  const triggers = [
-    {
-      icon: AlertTriangle,
-      title: 'The "never again" incident',
-      body: "A bad number makes it into a board deck, forecast call, or leadership review. That embarrassment creates immediate buying intent.",
-    },
-    {
-      icon: Clock3,
-      title: "The scaling threshold",
-      body: "The spreadsheet audit that used to take 20 minutes now eats a whole morning and still misses things.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Executive trust pressure",
-      body: 'A CRO or CFO says, "I need to trust this number before the meeting." The ops lead now has urgency and permission to act.',
-    },
-    {
-      icon: BadgeCheck,
-      title: "New leader scrutiny",
-      body: "A new VP or CFO questions process quality on day one, and the ops team needs a defensible system fast.",
-    },
-  ];
-
-  const dealKillers = [
-    "Anything that requires engineering or IT to get started",
-    "Vague ROI language instead of concrete time-saved and risk-avoided outcomes",
-    "Enterprise-heavy setup that adds work before delivering value",
-    "Messaging that sounds like governance software instead of operational protection",
-  ];
-
-  const workflowCards = [
-    {
-      title: "Setup",
-      subtitle: "Ground the rules in the real file context",
-      body: "Upload CSVs, inspect the columns, and define checks in plain English. The setup page makes the AI feel visible and controlled.",
-      href: setupHref,
-      cta: primaryProject ? "Open setup" : "Create a workspace to unlock setup",
-      icon: Bot,
-    },
-    {
-      title: "Dashboard",
-      subtitle: "Triage the damage in under 10 seconds",
-      body: "The dashboard is built for the moment after the audit finishes: severity first, impact counts next, and resolution paths close behind.",
-      href: dashboardHref,
-      cta: primaryProject ? "View dashboard" : "Create a workspace to unlock dashboard",
-      icon: FolderSearch2,
-    },
-    {
-      title: "History",
-      subtitle: "Keep the audit trail without rebuilding it",
-      body: "Uploads, rule changes, audits, and generated insights roll into one timeline that supports accountability and review.",
-      href: historyHref,
-      cta: primaryProject ? "Open history" : "Create a workspace to unlock history",
-      icon: Sparkles,
-    },
-  ];
+export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
+  const primaryHref = hasWorkspace ? "/projects" : "/signup";
 
   return (
-    <main className="min-h-[100dvh] px-4 py-6 md:px-8">
-      <div className="mx-auto max-w-[1400px] space-y-8">
-        <DeploymentBanner />
-
-        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,oklch(0.17_0.01_75),oklch(0.13_0.005_75)_58%,oklch(0.16_0.03_72))] px-6 py-8 md:px-10 md:py-10">
-          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38%] lg:block">
-            <div className="absolute right-8 top-8 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.26),transparent_68%)] blur-3xl" />
-            <div className="absolute bottom-8 right-10 flex h-[26rem] w-[22rem] items-center justify-center rounded-[2.75rem] border border-amber-300/12 bg-[linear-gradient(180deg,rgba(251,191,36,0.1),rgba(15,12,7,0.04))] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-              <CanaryLogo variant="mark" className="h-[15rem] w-[15rem]" />
-            </div>
+    <main className="min-h-[100dvh] px-4 py-5 md:px-8">
+      <div className="mx-auto max-w-[1400px] space-y-6">
+        <header className="glass-panel rounded-[0.75rem] border border-white/10 px-6 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <CanaryLogo variant="inline" showTagline={false} />
+            <nav className="flex flex-wrap items-center gap-6 text-sm text-zinc-400">
+              <a href="#monitoring" className="hover:text-white">
+                Monitoring
+              </a>
+              <a href="#intelligence" className="hover:text-white">
+                Intelligence
+              </a>
+              <a href="#alerts" className="hover:text-white">
+                Alerting
+              </a>
+            </nav>
+            <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "min-w-[220px]")}>
+              Start your first audit
+            </Link>
           </div>
+        </header>
 
-          <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="relative z-10 max-w-[46rem] space-y-7">
-              <CanaryLogo variant="stacked" className="max-w-[24rem]" />
-
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/18 bg-amber-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.26em] text-amber-100">
-                Built for RevOps, SalesOps, and Finance Ops
+        <section className="grid gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+          <div className="glass-panel canary-grid rounded-[0.9rem] border border-white/10 px-8 py-10">
+            <div className="max-w-[34rem] space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.26em] text-amber-100">
+                Built for revenue and finance data ops
               </div>
-
               <div className="space-y-4">
-                <h1 className="max-w-[13ch] text-4xl font-semibold tracking-tight md:text-6xl">
-                  Stop finding out about data problems in board meetings.
+                <h1 className="max-w-[11ch] text-5xl font-semibold tracking-tight text-white md:text-7xl">
+                  Stop finding out about data issues in <span className="text-primary">board meetings.</span>
                 </h1>
-                <p className="max-w-[62ch] text-base leading-8 text-muted-foreground md:text-lg">
-                  Canary gives operations teams an early warning system for bad CRM exports, broken reconciliations,
-                  missing fields, and recurring process drift. Upload the file, describe the checks in plain English,
-                  and catch the problem before leadership sees the number.
+                <p className="max-w-[60ch] text-base leading-8 text-zinc-300 md:text-lg">
+                  Canary is the instrumental early warning system for CRM exports, reconciliations, and pipeline logic.
+                  Upload the file, define the checks in plain English, and catch the anomaly before it reaches the board deck.
                 </p>
               </div>
-
-              <div id="conversion" className="flex flex-wrap items-center gap-3">
-                <CreateProjectDialog triggerLabel="Start your first workspace" />
-                {dashboardHref ? (
-                  <Link href={dashboardHref} className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
-                    See a live workspace
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                ) : (
-                  <a href="#workflow" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
-                    See the workflow
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                )}
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }))}>
+                  Start your first audit
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a href="#monitoring" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
+                  See the platform
+                </a>
               </div>
-
-              <div className="grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">What resonates</div>
-                  <div className="mt-3 text-sm leading-7 text-foreground">
-                    &ldquo;Catch CRM errors before they hit a leadership deck.&rdquo;
-                  </div>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">What closes</div>
-                  <div className="mt-3 text-sm leading-7 text-foreground">
-                    Fast time-to-value, no engineering required, and an audit trail ops can defend.
-                  </div>
-                </div>
+              <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-zinc-500">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                Start with one CSV. No integration required.
               </div>
             </div>
+          </div>
 
-            <div className="relative z-10 flex flex-col gap-4 lg:items-end">
-              <div className="w-full rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] lg:max-w-[25rem]">
-                <div className="flex items-center justify-between gap-3">
+          <div className="glass-panel rounded-[0.9rem] border border-white/10 p-6">
+            <div className="rounded-[0.75rem] border border-white/8 bg-[#121214] p-5 shadow-[0_30px_80px_-50px_rgba(0,0,0,0.8)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-[0.75rem] bg-amber-400/12 text-primary">
+                    <BellRing className="h-5 w-5" />
+                  </span>
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Why they buy</div>
-                    <div className="mt-2 text-lg font-semibold">Relief, not hype</div>
-                  </div>
-                  <div className="rounded-full border border-amber-300/18 bg-amber-400/10 px-3 py-1 font-mono text-xs text-amber-100">
-                    Time to value
+                    <div className="text-xs uppercase tracking-[0.22em] text-zinc-500">Live stream</div>
+                    <div className="text-lg font-semibold text-white">Global revenue pipeline</div>
                   </div>
                 </div>
-                <div className="mt-5 space-y-3">
-                  {[
-                    "Automate the audit the team runs manually every Monday.",
-                    "Get the issue count, root signal, and next action in one view.",
-                    "Keep the ops team strategic instead of stuck in spreadsheet triage.",
-                  ].map((item) => (
-                    <div key={item} className="flex items-start gap-3 rounded-[1.25rem] border border-white/8 bg-black/10 px-4 py-3">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-amber-200" />
-                      <div className="text-sm leading-6 text-muted-foreground">{item}</div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  <span className="h-2 w-2 rounded-full bg-white/15" />
+                  <span className="h-2 w-2 rounded-full bg-white/15" />
+                </div>
+              </div>
+              <div className="mt-6 space-y-3">
+                <div className="rounded-[0.75rem] border border-[#3d1f1d] bg-[#231717] px-4 py-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-[#ffb2ae]">Critical: logic violation</div>
+                      <div className="text-sm text-zinc-300">Discount &gt; 40% on enterprise tier</div>
                     </div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[#ff8f88]">02s ago</div>
+                  </div>
+                </div>
+                {[
+                  "Canary rule pack refreshed for Q2 close",
+                  "Revenue sync anomaly auto-resolved",
+                  "NetSuite mapping remains healthy",
+                ].map((item, index) => (
+                  <div key={item} className="flex items-center justify-between rounded-[0.75rem] bg-white/[0.03] px-4 py-3">
+                    <div className="flex items-center gap-3 text-sm text-zinc-300">
+                      <span className={cn("h-2 w-2 rounded-full", index === 2 ? "bg-emerald-400" : "bg-primary")} />
+                      {item}
+                    </div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">{index === 0 ? "14m ago" : index === 1 ? "21m ago" : "now"}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-7 flex items-end justify-between border-t border-white/8 pt-6">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.24em] text-zinc-500">Quarterly accuracy</div>
+                  <div className="mt-2 font-mono text-4xl text-primary">99.82%</div>
+                </div>
+                <div className="flex h-12 items-end gap-2">
+                  {[24, 30, 36, 48, 40].map((height) => (
+                    <span key={height} className="w-2 rounded-full bg-primary/85" style={{ height }} />
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              <div className="grid w-full gap-4 sm:grid-cols-[1.1fr_0.9fr] lg:max-w-[25rem]">
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                  <div className="font-mono text-3xl text-amber-200">80%</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    of ops capacity can disappear into data inconsistencies and manual review work.
+        <section id="monitoring" className="grid gap-6 lg:grid-cols-2">
+          {comparisonCards.map((card) => (
+            <div key={card.title} className="glass-panel rounded-[0.9rem] border border-white/10 p-7">
+              <div className="text-[11px] uppercase tracking-[0.26em] text-zinc-500">{card.eyebrow}</div>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">{card.title}</h2>
+              <div className="mt-6 space-y-3">
+                {card.points.map((point) => (
+                  <div key={point} className="flex items-start gap-3 rounded-[0.75rem] bg-white/[0.03] px-4 py-3 text-sm text-zinc-300">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                    <span>{point}</span>
                   </div>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                  <div className="font-mono text-3xl text-amber-200">50%+</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    of buyers self-educate before they ever want to talk to sales.
-                  </div>
-                </div>
+                ))}
+              </div>
+              <div className="mt-7 border-t border-white/8 pt-4 text-xs uppercase tracking-[0.22em] text-primary">
+                {card.result}
               </div>
             </div>
-          </div>
+          ))}
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-white/4 p-6 md:p-7">
-            <SectionIntro
-              eyebrow="The pain"
-              title="The work is precise. The process is brittle."
-              body="The report is clear: these teams take pride in rigor, but they are still living inside CRM exports and spreadsheet audits that do not scale. Canary should sound like a sharp ops peer who understands the burden and removes it."
-            />
-          </div>
-          <div className="rounded-[2rem] border border-white/10 bg-white/4 p-6 md:p-7">
-            <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Conversion frame</div>
-            <div className="mt-3 text-sm leading-7 text-muted-foreground">
-              Lead with risk avoidance, speed, and ops autonomy. Skip abstract “data quality” language. Show the exact
-              downstream mistake Canary prevents.
-            </div>
-          </div>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-white/4 p-6 md:p-7">
-            <SectionIntro
-              eyebrow="Core personas"
-              title="Three buyers. One shared anxiety."
-              body="RevOps, SalesOps, and Finance Ops all live with the same risk: a number they can’t fully trust, paired with a manual process they can’t keep running forever."
-            />
-          </div>
-          <div className="grid gap-4">
-            {personas.map((persona, index) => (
+        <section className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]" id="alerts">
+          <Panel
+            eyebrow="Execution for the operator"
+            title="From spreadsheet operator to strategic partner"
+            body="Canary gives operations teams the signal discipline of a modern control room. Less reactive cleanup, more confident leadership support."
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {pillars.map((pillar, index) => (
               <div
-                key={persona.title}
+                key={pillar.title}
                 className={cn(
-                  "rounded-[1.75rem] border border-white/10 bg-white/5 p-5",
-                  index === 0 && "lg:-mr-6",
-                  index === 1 && "lg:ml-8",
+                  "glass-panel rounded-[0.75rem] border border-white/8 p-5",
+                  index === 0 && "sm:col-span-2",
                 )}
               >
-                <div className="text-[11px] uppercase tracking-[0.22em] text-amber-200">{persona.role}</div>
-                <h3 className="mt-2 text-xl font-semibold">{persona.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">{persona.description}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {persona.stats.map((stat) => (
-                    <span
-                      key={stat}
-                      className="rounded-full border border-white/10 bg-black/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-zinc-300"
-                    >
-                      {stat}
-                    </span>
-                  ))}
-                </div>
+                <div className="text-[11px] uppercase tracking-[0.24em] text-primary">{pillar.eyebrow}</div>
+                <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">{pillar.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-zinc-300">{pillar.body}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/4 p-6 md:p-7">
-            <SectionIntro
-              eyebrow="What opens budget"
-              title="Canary needs to show up at the exact moment manual control breaks."
-              body="The strongest buying windows are public errors, scaling pain, executive scrutiny, and new-leader pressure. The homepage should feel like it recognizes that moment immediately."
-            />
-            <div className="grid gap-3">
-              {triggers.map((trigger) => (
-                <div key={trigger.title} className="rounded-[1.5rem] border border-white/10 bg-black/10 p-4">
-                  <div className="flex items-start gap-3">
-                    <span className="mt-0.5 rounded-full border border-amber-300/18 bg-amber-400/10 p-2 text-amber-100">
-                      <trigger.icon className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground">{trigger.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{trigger.body}</p>
-                    </div>
-                  </div>
+        <section className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr]" id="intelligence">
+          <div className="glass-panel rounded-[0.9rem] border border-white/10 p-8">
+            <div className="text-[11px] uppercase tracking-[0.28em] text-primary">Execution by the operator</div>
+            <h2 className="mt-4 max-w-[15ch] text-4xl font-semibold tracking-tight text-white">
+              Secure your board deck before the number hardens.
+            </h2>
+            <p className="mt-4 max-w-[60ch] text-sm leading-7 text-zinc-300">
+              The first audit should take minutes, not a procurement cycle. Canary exists to protect trust in the number and restore calm to the operator running the pipeline.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {[
+                { icon: FolderSearch2, label: "Audits", value: "Mapped schema" },
+                { icon: Activity, label: "Monitoring", value: "Live drift signal" },
+                { icon: BrainCircuit, label: "Intelligence", value: "Operational memory" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-[0.75rem] bg-white/[0.03] p-4">
+                  <item.icon className="h-5 w-5 text-primary" />
+                  <div className="mt-5 text-xs uppercase tracking-[0.2em] text-zinc-500">{item.label}</div>
+                  <div className="mt-2 text-base font-semibold text-white">{item.value}</div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/4 p-6 md:p-7">
-            <SectionIntro
-              eyebrow="What kills the deal"
-              title="Don’t make the buyer ask engineering for permission."
-              body="The report calls this out repeatedly: the wrong workflow and the wrong language will stall an otherwise strong buyer."
-            />
-            <div className="space-y-3">
-              {dealKillers.map((item) => (
-                <div key={item} className="rounded-[1.5rem] border border-red-400/12 bg-red-500/6 px-4 py-3 text-sm leading-6 text-zinc-300">
-                  {item}
+          <div className="glass-panel rounded-[0.9rem] border border-white/10 p-7">
+            <div className="rounded-[0.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-12 w-12 items-center justify-center rounded-[0.75rem] bg-primary/12 text-primary">
+                  <ShieldAlert className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-white">Audit confidence snapshot</div>
+                  <div className="text-xs uppercase tracking-[0.22em] text-zinc-500">Instrumental precision</div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-[2.25rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 md:p-8" id="workflow">
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <SectionIntro
-              eyebrow="Existing product flow"
-              title="The landing page now hands people into the pages that already exist."
-              body="Instead of stopping at a generic CTA, the homepage points into the actual product journey: setup for rule creation, dashboard for triage, and history for auditability."
-            />
-            <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
-              {workflowCards.map((card, index) => (
-                <div
-                  key={card.title}
-                  className={cn(
-                    "rounded-[1.75rem] border border-white/10 bg-white/5 p-5",
-                    index === 0 && "md:row-span-2",
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-full border border-amber-300/18 bg-amber-400/10 p-2 text-amber-100">
-                      <card.icon className="h-4 w-4" />
-                    </span>
-                    <div className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{card.title}</div>
-                  </div>
-                  <h3 className="mt-4 text-xl font-semibold">{card.subtitle}</h3>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground">{card.body}</p>
-                  {card.href ? (
-                    <Link href={card.href} className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "mt-5")}>
-                      {card.cta}
-                    </Link>
-                  ) : (
-                    <div className="mt-5 text-xs uppercase tracking-[0.18em] text-muted-foreground">{card.cta}</div>
-                  )}
+              </div>
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <div className="rounded-[0.75rem] bg-black/20 p-5">
+                  <div className="text-xs uppercase tracking-[0.2em] text-zinc-500">Median response time</div>
+                  <div className="mt-4 font-mono text-4xl text-white">14m</div>
+                  <p className="mt-3 text-sm text-zinc-400">Time between detection and action across the latest signal cycle.</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {primaryProject ? (
-          <section className="space-y-5">
-            <SectionIntro
-              eyebrow="Live workspace"
-              title="Jump back into the account experience"
-              body={`"${primaryProject.name}" is ready to open. The cards below drop straight into the current workspace flow.`}
-            />
-            <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <ProjectCard project={primaryProject} />
-              <div className="grid gap-4">
-                {[
-                  { label: "Open dashboard", href: dashboardHref },
-                  { label: "Refine setup", href: setupHref },
-                  { label: "Review history", href: historyHref },
-                ].map((link) =>
-                  link.href ? (
-                    <Link
-                      key={link.label}
-                      href={link.href}
-                      className="rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-5 text-sm transition-colors hover:bg-white/8"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span>{link.label}</span>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </Link>
-                  ) : null,
-                )}
+                <div className="rounded-[0.75rem] bg-primary/12 p-5">
+                  <div className="text-xs uppercase tracking-[0.2em] text-[#c07a1c]">Recovered leadership time</div>
+                  <div className="mt-4 font-mono text-4xl text-[#fff4dc]">47h</div>
+                  <p className="mt-3 text-sm text-[#f0d8a1]">Projected time returned to RevOps and finance operations every quarter.</p>
+                </div>
               </div>
             </div>
-          </section>
-        ) : null}
+          </div>
+        </section>
 
-        <section className="rounded-[2.25rem] border border-amber-300/16 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(255,255,255,0.03))] p-6 md:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+        <section className="glass-panel rounded-[0.9rem] border border-primary/20 px-8 py-9">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div className="space-y-4">
-              <div className="text-[11px] uppercase tracking-[0.28em] text-amber-100">Final CTA</div>
-              <h2 className="max-w-[15ch] text-3xl font-semibold tracking-tight md:text-4xl">
-                Give the team an early warning system before the next bad export lands.
+              <div className="text-[11px] uppercase tracking-[0.28em] text-primary">Final CTA</div>
+              <h2 className="max-w-[14ch] text-4xl font-semibold tracking-tight text-white">
+                Create your first Canary workspace and make the next close boring.
               </h2>
-              <p className="max-w-[60ch] text-sm leading-7 text-zinc-200/78 md:text-base">
-                The GTM report’s strongest message is simple: the buyer wants protection, proof, and relief. The next
-                step in this product is creating a workspace and landing directly in setup.
+              <p className="max-w-[58ch] text-sm leading-7 text-zinc-300">
+                Instrument the file, author the rules, and let monitoring do its job before the downstream meeting ever starts.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-              <CreateProjectDialog triggerLabel="Create your workspace" />
-              {primaryProject ? (
-                <Link href={setupHref!} className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-                  Go to setup
-                </Link>
-              ) : null}
+              <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "min-w-[220px]")}>
+                Create your account
+              </Link>
+              <a href="#monitoring" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
+                Review the workflow
+              </a>
             </div>
           </div>
         </section>
+
+        <footer className="glass-panel rounded-[0.9rem] border border-white/10 p-8">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr_0.9fr]">
+            <div className="space-y-4">
+              <CanaryLogo variant="inline" showTagline={false} />
+              <p className="max-w-[38ch] text-sm leading-7 text-zinc-400">
+                Precision instrumentation for revenue and finance operations. Build trust in the number before it reaches the room that matters.
+              </p>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.26em] text-zinc-500">Platform</div>
+              <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                <div>Product overview</div>
+                <div>Manual audit tool</div>
+                <div>Live monitoring</div>
+                <div>Process logic</div>
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.26em] text-zinc-500">Company</div>
+              <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                <div>White papers</div>
+                <div>RevOps report 2026</div>
+                <Link href="/privacy" className="hover:text-white">
+                  Privacy policy
+                </Link>
+                <Link href="/terms" className="hover:text-white">
+                  Terms of service
+                </Link>
+                <Link href="/security" className="hover:text-white">
+                  Security
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/8 pt-5 text-xs uppercase tracking-[0.22em] text-zinc-500">
+            <span>© 2026 Canary Instrumentation</span>
+            <span className="inline-flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Network uptime 99.982
+            </span>
+          </div>
+        </footer>
       </div>
     </main>
   );

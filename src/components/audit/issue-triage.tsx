@@ -27,7 +27,7 @@ function Column({
       </CardHeader>
       <CardContent className="space-y-4">
         {issues.length === 0 ? (
-          <div className="rounded-[1.25rem] border border-dashed border-white/10 bg-white/4 p-4 text-sm text-muted-foreground">
+          <div className="rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">
             Nothing here.
           </div>
         ) : null}
@@ -61,21 +61,21 @@ export function IssueTriage({
     <div className="grid gap-6 xl:grid-cols-[1.15fr_1fr_0.85fr]">
       <Column
         title="Critical"
-        icon={<ShieldAlert className="h-4 w-4 text-red-200" />}
+        icon={<ShieldAlert className="h-4 w-4 text-red-500" />}
         issues={critical}
         findings={findings}
         resolutions={resolutions}
       />
       <Column
         title="Warnings"
-        icon={<TriangleAlert className="h-4 w-4 text-amber-200" />}
+        icon={<TriangleAlert className="h-4 w-4 text-amber-500" />}
         issues={warnings}
         findings={findings}
         resolutions={resolutions}
       />
       <Column
         title="Passing"
-        icon={<CheckCircle2 className="h-4 w-4 text-emerald-200" />}
+        icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />}
         issues={passing}
         findings={findings}
         resolutions={resolutions}

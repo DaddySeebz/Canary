@@ -1,6 +1,8 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { logActivity } from "@/lib/db/activity";
+import { getProjectById } from "@/lib/db/projects";
 import { touchProject } from "@/lib/db/projects";
 import { createRule, listProjectRules } from "@/lib/db/rules";
 import { genericRuleSchema, validateRuleConfig } from "@/lib/rules/schemas";
@@ -14,6 +16,16 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!getProjectById(id, userId)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   return NextResponse.json({ rules: listProjectRules(id) });
 }
 
@@ -22,6 +34,16 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!getProjectById(id, userId)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const body = createRuleSchema.safeParse(await request.json());
 
   if (!body.success) {

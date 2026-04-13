@@ -18,27 +18,27 @@ export function SchemaChangeBanner({ schemaDiff }: { schemaDiff: SchemaDiffResul
   }
 
   return (
-    <Alert className="border-amber-400/25 bg-amber-500/8">
+    <Alert className="border-amber-200 bg-[#fff8e8]">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-200" />
+        <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600" />
         <div className="space-y-3">
           <div>
-            <div className="text-sm font-semibold text-amber-100">Schema change detected</div>
-            <p className="mt-1 text-sm text-amber-50/80">
+            <div className="text-sm font-semibold text-amber-800">Schema change detected</div>
+            <p className="mt-1 text-sm text-amber-700">
               This upload changed the shape of {schemaDiff.previousFile.original_name}. Review the impacted rules before the next audit.
             </p>
           </div>
           <div className="grid gap-3 text-sm md:grid-cols-3">
             <div>
-              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-100/70">Added</div>
+              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">Added</div>
               <div>{schemaDiff.added.join(", ") || "None"}</div>
             </div>
             <div>
-              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-100/70">Removed</div>
+              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">Removed</div>
               <div>{schemaDiff.removed.join(", ") || "None"}</div>
             </div>
             <div>
-              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-100/70">Renamed</div>
+              <div className="mb-1 text-xs uppercase tracking-[0.18em] text-amber-700/80">Renamed</div>
               <div className="space-y-1">
                 {schemaDiff.renamed.length > 0
                   ? schemaDiff.renamed.map((rename) => (
@@ -53,7 +53,7 @@ export function SchemaChangeBanner({ schemaDiff }: { schemaDiff: SchemaDiffResul
             </div>
           </div>
           {schemaDiff.affectedRules.length > 0 ? (
-            <p className="text-sm text-amber-50/80">
+            <p className="text-sm text-amber-700">
               Impacted rules: {schemaDiff.affectedRules.map((rule) => rule.description_plain).join(", ")}
             </p>
           ) : null}

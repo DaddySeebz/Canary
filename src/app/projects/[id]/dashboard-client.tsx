@@ -119,29 +119,34 @@ export function DashboardClient({
   if (!run) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-muted-foreground">No audits yet.</div>
-          <div className="flex items-center gap-3">
-            <FileUploader projectId={projectId} compact onUploaded={() => router.refresh()} />
-            <Button disabled>
-              <Play className="h-4 w-4" />
-              Run Audit
-            </Button>
+        <section className="workspace-panel rounded-[0.9rem] border border-[color:var(--workspace-border)] px-6 py-7">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-[38rem] space-y-3">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700">Monitoring</div>
+              <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Nothing has been monitored yet.</h2>
+              <p className="text-sm leading-7 text-slate-500">
+                Upload at least one CSV, define an active rule in audits, and then run the first Canary audit to light up monitoring.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <FileUploader projectId={projectId} compact onUploaded={() => router.refresh()} />
+              <Button disabled>
+                <Play className="h-4 w-4" />
+                Run Audit
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        </section>
+        <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Nothing has been checked yet</CardTitle>
+              <CardTitle>Monitoring will appear here</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>Upload at least one CSV, define an active rule in setup, then run the first audit.</p>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">Health score will land here.</div>
-                <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">Issue triage will appear after the first run.</div>
-                <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">Six Sigma metrics activate after an audit.</div>
-                <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">ROI stays conservative and transparent.</div>
-              </div>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">Health score and issue balance</div>
+              <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">Active anomaly triage</div>
+              <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">Sigma and yield metrics</div>
+              <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">ROI and downstream risk</div>
             </CardContent>
           </Card>
           <InsightsPanel insights={[]} />
@@ -152,19 +157,27 @@ export function DashboardClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-white/10 bg-white/4 px-5 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock3 className="h-4 w-4" />
-          Last run: {new Date(run.ran_at).toLocaleString()} {run.duration_ms ? `| ${run.duration_ms}ms` : ""}
+      <section className="workspace-panel rounded-[0.9rem] border border-[color:var(--workspace-border)] px-6 py-7">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+              <Clock3 className="h-4 w-4" />
+              Last run: {new Date(run.ran_at).toLocaleString()} {run.duration_ms ? `| ${run.duration_ms}ms` : ""}
+            </div>
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Live monitoring and anomaly triage</h2>
+            <p className="max-w-[52ch] text-sm leading-7 text-slate-500">
+              Review what broke, what needs watching, and what is safe to move downstream before the number reaches leadership.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <FileUploader projectId={projectId} compact onUploaded={() => router.refresh()} />
+            <Button onClick={() => void handleRunAudit()} disabled={!canRunAudit || isRunning}>
+              <Play className="h-4 w-4" />
+              {isRunning ? "Running..." : "Run Audit"}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <FileUploader projectId={projectId} compact onUploaded={() => router.refresh()} />
-          <Button onClick={() => void handleRunAudit()} disabled={!canRunAudit || isRunning}>
-            <Play className="h-4 w-4" />
-            {isRunning ? "Running..." : "Run Audit"}
-          </Button>
-        </div>
-      </div>
+      </section>
 
       <HealthScore
         score={run.health_score ?? 0}

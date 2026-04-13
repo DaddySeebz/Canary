@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import {
   convertToModelMessages,
   stepCountIs,
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { buildRuleSystemPrompt } from "@/lib/ai/system-prompt";
 import { getModel } from "@/lib/ai/provider";
 import { logActivity } from "@/lib/db/activity";
+import { getProjectById } from "@/lib/db/projects";
 import { touchProject } from "@/lib/db/projects";
 import { createRule } from "@/lib/db/rules";
 import { genericRuleSchema, validateRuleConfig } from "@/lib/rules/schemas";
@@ -23,11 +25,27 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   const body = requestSchema.safeParse(await request.json());
 
   if (!body.success) {
     return new Response(JSON.stringify({ error: body.error.flatten() }), {
       status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  if (!getProjectById(body.data.projectId, userId)) {
+    return new Response(JSON.stringify({ error: "Project not found" }), {
+      status: 404,
       headers: { "content-type": "application/json" },
     });
   }

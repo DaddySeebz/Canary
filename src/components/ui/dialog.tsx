@@ -21,7 +21,7 @@ export function DialogContent({
       <BaseDialog.Backdrop className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" />
       <BaseDialog.Popup
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-white/10 bg-card p-6 shadow-[0_30px_100px_-40px_rgba(0,0,0,0.9)]",
+          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-[0.85rem] border border-[color:var(--workspace-border)] bg-[color:var(--workspace-elevated)] p-6 text-[color:var(--workspace-ink)] shadow-[0_30px_100px_-40px_rgba(0,0,0,0.4)]",
           className,
         )}
       >
@@ -46,7 +46,7 @@ export function DialogDescription({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <BaseDialog.Description className={cn("text-sm text-muted-foreground", className)}>{children}</BaseDialog.Description>;
+  return <BaseDialog.Description className={cn("text-sm text-[color:var(--workspace-muted)]", className)}>{children}</BaseDialog.Description>;
 }
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

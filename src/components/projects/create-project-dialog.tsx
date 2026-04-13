@@ -49,7 +49,7 @@ export function CreateProjectDialog({ triggerLabel = "Create Project" }: { trigg
       setDescription("");
       toast.success("Project created.");
       if (projectId) {
-        router.push(`/projects/${projectId}/setup`);
+        router.push(`/projects/${projectId}/audits`);
       }
       router.refresh();
     } catch (error) {
@@ -66,9 +66,9 @@ export function CreateProjectDialog({ triggerLabel = "Create Project" }: { trigg
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Start a new Canary project</DialogTitle>
+          <DialogTitle>Create a new Canary workspace</DialogTitle>
           <DialogDescription>
-            Give the workspace a clear name. You can refine the description later.
+            Give the workspace a clear name. You can refine the description and monitoring rules after creation.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -76,7 +76,7 @@ export function CreateProjectDialog({ triggerLabel = "Create Project" }: { trigg
             <Label htmlFor="project-name">Project name</Label>
             <Input
               id="project-name"
-              placeholder="Month-end reconciliation"
+              placeholder="Quarter-end revenue integrity"
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -86,14 +86,14 @@ export function CreateProjectDialog({ triggerLabel = "Create Project" }: { trigg
             <Label htmlFor="project-description">Description</Label>
             <Textarea
               id="project-description"
-              placeholder="What this dataset supports, who uses it, and where mistakes hurt."
+              placeholder="What this dataset supports, who depends on it, and what goes wrong when it drifts."
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting || name.trim().length === 0}>
-              {isSubmitting ? "Creating..." : "Create Project"}
+              {isSubmitting ? "Creating..." : "Create Workspace"}
             </Button>
           </DialogFooter>
         </form>

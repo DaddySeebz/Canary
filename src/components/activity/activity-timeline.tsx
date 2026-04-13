@@ -13,7 +13,7 @@ function iconForAction(action: string) {
 export function ActivityTimeline({ entries }: { entries: ActivityRecord[] }) {
   if (entries.length === 0) {
     return (
-      <div className="rounded-[1.5rem] border border-dashed border-white/10 bg-white/4 p-6 text-sm text-muted-foreground">
+      <div className="rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 p-6 text-sm text-slate-500">
         No activity yet. Upload a file or run the first audit to start the trail.
       </div>
     );
@@ -24,16 +24,16 @@ export function ActivityTimeline({ entries }: { entries: ActivityRecord[] }) {
       {entries.map((entry) => {
         const Icon = iconForAction(entry.action);
         return (
-          <div key={entry.id} className="flex gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <Icon className="h-4 w-4 text-amber-200" />
+          <div key={entry.id} className="flex gap-4 rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.65rem] bg-amber-50">
+              <Icon className="h-4 w-4 text-amber-600" />
             </div>
             <div className="space-y-1">
-              <div className="text-sm font-semibold">{entry.action.replaceAll(".", " / ")}</div>
-              <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="text-sm font-semibold text-slate-950">{entry.action.replaceAll(".", " / ")}</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
                 {new Date(entry.created_at).toLocaleString()}
               </div>
-              {entry.details ? <pre className="whitespace-pre-wrap font-mono text-xs text-muted-foreground">{entry.details}</pre> : null}
+              {entry.details ? <pre className="whitespace-pre-wrap font-mono text-xs text-slate-500">{entry.details}</pre> : null}
             </div>
           </div>
         );

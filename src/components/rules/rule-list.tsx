@@ -50,7 +50,7 @@ export function RuleList({
 
   if (rules.length === 0) {
     return (
-      <div className="rounded-[1.25rem] border border-dashed border-white/10 bg-white/4 p-4 text-sm text-muted-foreground">
+      <div className="rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-500">
         No rules yet. Ask Canary for the first one in plain English.
       </div>
     );
@@ -59,7 +59,7 @@ export function RuleList({
   return (
     <div className="space-y-3">
       {rules.map((rule) => (
-        <div key={rule.id} className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4">
+        <div key={rule.id} className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -74,11 +74,11 @@ export function RuleList({
                 >
                   {rule.severity}
                 </Badge>
-                <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                <span className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   {rule.rule_type.replaceAll("_", " ")}
                 </span>
               </div>
-              <div className="text-sm font-medium">{rule.description_plain}</div>
+              <div className="text-sm font-medium text-slate-950">{rule.description_plain}</div>
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={rule.active} onCheckedChange={() => void toggleRule(rule)} />

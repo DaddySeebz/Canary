@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function getScoreColor(score: number) {
   if (score >= 90) return "#10b981";
-  if (score >= 70) return "#fbbf24";
+  if (score >= 70) return "#f59e0b";
   return "#ef4444";
 }
 
@@ -26,12 +26,12 @@ export function HealthScore({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Health Score</CardTitle>
+        <CardTitle>Health score</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-[140px_1fr] md:items-center">
         <div className="mx-auto">
           <svg viewBox="0 0 120 120" className="h-[120px] w-[120px] -rotate-90">
-            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(15,23,42,0.08)" strokeWidth="8" />
             <circle
               cx="60"
               cy="60"
@@ -48,7 +48,7 @@ export function HealthScore({
               x="60"
               y="65"
               textAnchor="middle"
-              className="fill-white font-mono text-[28px] font-bold"
+              className="fill-slate-950 font-mono text-[28px] font-bold"
               transform="rotate(90 60 60)"
             >
               {score}
@@ -56,30 +56,30 @@ export function HealthScore({
           </svg>
         </div>
         <div className="space-y-4">
-          <p className="max-w-[42ch] text-sm text-muted-foreground">
-            Here’s the short version: what broke, what needs watching, and whether the dataset is safe to move downstream.
+          <p className="max-w-[42ch] text-sm text-slate-500">
+            Here&apos;s the short version: what broke, what needs watching, and whether the dataset is safe to move downstream.
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-[1.25rem] border border-red-400/20 bg-red-500/10 p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-red-100">
+            <div className="rounded-[0.75rem] border border-red-200 bg-red-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-red-700">
                 <ShieldAlert className="h-4 w-4" />
                 Critical
               </div>
-              <div className="mt-2 font-mono text-2xl">{criticalCount}</div>
+              <div className="mt-2 font-mono text-2xl text-red-700">{criticalCount}</div>
             </div>
-            <div className="rounded-[1.25rem] border border-amber-400/20 bg-amber-500/10 p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-amber-100">
+            <div className="rounded-[0.75rem] border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-amber-700">
                 <AlertTriangle className="h-4 w-4" />
                 Warnings
               </div>
-              <div className="mt-2 font-mono text-2xl">{warningCount}</div>
+              <div className="mt-2 font-mono text-2xl text-amber-700">{warningCount}</div>
             </div>
-            <div className="rounded-[1.25rem] border border-emerald-400/20 bg-emerald-500/10 p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-emerald-100">
+            <div className="rounded-[0.75rem] border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
                 <CheckCircle2 className="h-4 w-4" />
                 Passing
               </div>
-              <div className="mt-2 font-mono text-2xl">{passingCount}</div>
+              <div className="mt-2 font-mono text-2xl text-emerald-700">{passingCount}</div>
             </div>
           </div>
         </div>

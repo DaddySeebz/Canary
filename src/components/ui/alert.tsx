@@ -10,7 +10,7 @@ export function Alert({
   return (
     <div
       className={cn(
-        "rounded-[1.25rem] border border-white/10 bg-white/5 p-4 text-sm text-foreground",
+        "rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-white p-4 text-sm text-[color:var(--workspace-ink)]",
         className,
       )}
     >

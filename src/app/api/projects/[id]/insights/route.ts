@@ -1,8 +1,10 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { generateInsights } from "@/lib/ai/insights-generator";
 import { detectPatterns } from "@/lib/analytics/pattern-detector";
 import { logActivity } from "@/lib/db/activity";
+import { getProjectById } from "@/lib/db/projects";
 import {
   listInsightsForRun,
   replaceInsightsForRun,
@@ -17,6 +19,16 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!getProjectById(id, userId)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const runs = listCompletedRuns(id, 6);
 
   if (runs.length < 3) {

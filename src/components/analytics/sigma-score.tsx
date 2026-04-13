@@ -17,18 +17,18 @@ export function SigmaScore({
         <CardTitle>Six Sigma</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-3">
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Sigma</div>
-          <div className="mt-2 font-mono text-3xl">{sigma.toFixed(1)}</div>
-          <div className="mt-1 text-sm text-muted-foreground">{label}</div>
+        <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Sigma</div>
+          <div className="mt-2 font-mono text-3xl text-slate-950">{sigma.toFixed(1)}</div>
+          <div className="mt-1 text-sm text-slate-500">{label}</div>
         </div>
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">DPMO</div>
-          <div className="mt-2 font-mono text-3xl">{Math.round(dpmo).toLocaleString()}</div>
+        <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-400">DPMO</div>
+          <div className="mt-2 font-mono text-3xl text-slate-950">{Math.round(dpmo).toLocaleString()}</div>
         </div>
-        <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Yield</div>
-          <div className="mt-2 font-mono text-3xl">{(yieldValue * 100).toFixed(1)}%</div>
+        <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Yield</div>
+          <div className="mt-2 font-mono text-3xl text-slate-950">{(yieldValue * 100).toFixed(1)}%</div>
         </div>
       </CardContent>
     </Card>

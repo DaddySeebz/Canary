@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,18 +61,18 @@ export function IssueCard({
   }
 
   return (
-    <Card className="border-white/8 bg-white/4">
+    <Card className="border-[color:var(--workspace-border)] bg-white">
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={issue.severity}>{issue.severity}</Badge>
-              <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              <span className="text-xs uppercase tracking-[0.18em] text-slate-400">
                 {issue.rule_type.replaceAll("_", " ")}
               </span>
             </div>
-            <div className="text-sm font-semibold">{issue.description_plain}</div>
-            <div className="font-mono text-xs text-muted-foreground">
+            <div className="text-sm font-semibold text-slate-950">{issue.description_plain}</div>
+            <div className="font-mono text-xs text-slate-500">
               {issue.finding_count} rows affected • {fileCount || issue.file_count} files
             </div>
           </div>
@@ -87,12 +87,12 @@ export function IssueCard({
             </Button>
           </div>
         </div>
-        <div className="rounded-[1.25rem] border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Resolution:</span>{" "}
+        <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4 text-sm text-slate-600">
+          <span className="font-medium text-slate-950">Resolution:</span>{" "}
           {resolution?.suggestion || "Review the flagged rows and correct the source values before the next run."}
         </div>
         {expanded ? (
-          <div className="overflow-hidden rounded-[1.25rem] border border-white/10">
+          <div className="overflow-hidden rounded-[0.75rem] border border-[color:var(--workspace-border)]">
             <Table>
               <TableHeader>
                 <TableRow>

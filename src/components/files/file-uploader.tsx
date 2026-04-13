@@ -77,23 +77,30 @@ export function FileUploader({
       {compact ? (
         <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()} disabled={isUploading}>
           <UploadCloud className="h-4 w-4" />
-          {isUploading ? "Uploading..." : "Drop CSV"}
+          {isUploading ? "Uploading..." : "Upload CSV"}
         </Button>
       ) : (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex w-full flex-col items-start gap-3 text-left"
+          className="flex min-h-[280px] w-full flex-col items-center justify-center gap-4 rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 px-6 py-8 text-center"
           disabled={isUploading}
         >
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-amber-500/10 text-amber-200">
-            <UploadCloud className="h-5 w-5" />
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+            <UploadCloud className="h-7 w-7" />
           </span>
           <div>
-            <div className="text-base font-semibold">{isUploading ? "Uploading..." : "Drop a CSV or click to upload"}</div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Canary stores the raw file locally, samples the first rows, and uses the schema to ground rules.
+            <div className="text-3xl font-semibold tracking-tight text-slate-950">
+              {isUploading ? "Uploading..." : "Upload your data source"}
+            </div>
+            <p className="mt-3 max-w-[40ch] text-sm leading-7 text-slate-500">
+              Select a CSV file and Canary will map the schema, sample the rows, and ground every rule you create afterward.
             </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
+            <span className="rounded-[0.5rem] border border-[color:var(--workspace-border)] bg-white px-4 py-2">CSV</span>
+            <span className="rounded-[0.5rem] border border-[color:var(--workspace-border)] bg-white px-4 py-2 opacity-60">JSON</span>
+            <span className="rounded-[0.5rem] border border-[color:var(--workspace-border)] bg-white px-4 py-2 opacity-60">Parquet</span>
           </div>
         </button>
       )}

@@ -9,6 +9,17 @@ import { schemaSql } from "@/lib/db/schema";
 
 let database: Database.Database | null = null;
 
+function hasColumn(db: Database.Database, table: string, column: string) {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  return rows.some((row) => row.name === column);
+}
+
+function ensureSchemaUpgrades(db: Database.Database) {
+  if (!hasColumn(db, "projects", "user_id")) {
+    db.prepare(`ALTER TABLE projects ADD COLUMN user_id TEXT`).run();
+  }
+}
+
 function resolveDatabasePath() {
   const configuredPath = process.env.DATABASE_PATH || getDefaultDatabasePath();
   return path.isAbsolute(configuredPath)
@@ -45,6 +56,7 @@ export function getDatabase() {
   database.pragma("foreign_keys = ON");
 
   database.exec(schemaSql);
+  ensureSchemaUpgrades(database);
   ensureVercelDemoSeed(database);
 
   return database;

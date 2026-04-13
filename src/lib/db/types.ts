@@ -2,6 +2,7 @@ import type { RuleSeverity, RuleType } from "@/lib/rules/types";
 
 export interface ProjectRecord {
   id: string;
+  user_id: string | null;
   name: string;
   description: string | null;
   created_at: string;

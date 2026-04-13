@@ -1,25 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Inter, Space_Grotesk } from "next/font/google";
 
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const bodyFont = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const displayFont = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Canary — Know Before It Costs You",
+  title: "Canary | Instrumental Early Warning for Data Operations",
   description:
-    "AI-powered data quality intelligence. Upload CSVs, define audit rules in plain English, and get actionable insights.",
+    "High-precision auditing, live monitoring, and operational intelligence for revenue and finance data teams.",
 };
 
 export default function RootLayout({
@@ -28,14 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-background text-foreground antialiased`}
-      >
-        <TooltipProvider>
-          {children}
-          <Toaster richColors position="top-right" theme="dark" />
-        </TooltipProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${bodyFont.variable} ${displayFont.variable} bg-background text-foreground antialiased`}>
+        <ClerkProvider signInUrl="/login" signUpUrl="/signup">
+          <TooltipProvider>
+            {children}
+            <Toaster richColors position="top-right" theme="dark" />
+          </TooltipProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

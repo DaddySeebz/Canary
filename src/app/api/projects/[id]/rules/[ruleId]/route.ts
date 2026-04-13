@@ -1,7 +1,9 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { logActivity } from "@/lib/db/activity";
+import { getProjectById } from "@/lib/db/projects";
 import { touchProject } from "@/lib/db/projects";
 import { deleteRule, getRuleById, updateRule } from "@/lib/db/rules";
 import { validateRuleConfig } from "@/lib/rules/schemas";
@@ -32,6 +34,16 @@ export async function PUT(
   context: { params: Promise<{ id: string; ruleId: string }> },
 ) {
   const { id, ruleId } = await context.params;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!getProjectById(id, userId)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const existing = getRuleById(ruleId);
 
   if (!existing || existing.project_id !== id) {
@@ -67,6 +79,16 @@ export async function DELETE(
   context: { params: Promise<{ id: string; ruleId: string }> },
 ) {
   const { id, ruleId } = await context.params;
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!getProjectById(id, userId)) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
   const rule = getRuleById(ruleId);
 
   if (!rule || rule.project_id !== id) {

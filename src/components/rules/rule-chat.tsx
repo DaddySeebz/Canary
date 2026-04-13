@@ -42,33 +42,33 @@ export function RuleChat({ projectId }: { projectId: string }) {
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="space-y-1">
-        <div className="flex items-center gap-2 text-sm font-semibold">
-          <Sparkles className="h-4 w-4 text-amber-200" />
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+          <Sparkles className="h-4 w-4 text-amber-600" />
           Rule chat
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-slate-500">
           Tell Canary what should be true. It will turn that into a usable audit rule.
         </p>
       </div>
-      <div className="min-h-[320px] flex-1 space-y-3 overflow-y-auto rounded-[1.5rem] border border-white/10 bg-white/4 p-4">
+      <div className="min-h-[320px] flex-1 space-y-3 overflow-y-auto rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
         {messages.length === 0 ? (
-          <div className="rounded-[1.25rem] border border-dashed border-white/10 bg-white/4 p-4 text-sm text-muted-foreground">
-            Try: “Amount should always be positive” or “Invoice ID must be unique.”
+          <div className="rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-white p-4 text-sm text-slate-500">
+            Try: &ldquo;Amount should always be positive&rdquo; or &ldquo;Invoice ID must be unique.&rdquo;
           </div>
         ) : null}
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`max-w-[90%] rounded-[1.25rem] border p-4 ${
+            className={`max-w-[90%] rounded-[0.75rem] border p-4 ${
               message.role === "user"
-                ? "ml-auto border-amber-300/20 bg-amber-400/10"
-                : "border-white/10 bg-white/5"
+                ? "ml-auto border-amber-200 bg-amber-50"
+                : "border-[color:var(--workspace-border)] bg-white"
             }`}
           >
-            <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
               {message.role}
             </div>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm text-slate-700">
               {message.parts.map((part, index) => {
                 if (part.type === "text") {
                   return <p key={index}>{part.text}</p>;
@@ -76,7 +76,7 @@ export function RuleChat({ projectId }: { projectId: string }) {
 
                 if (part.type === "reasoning") {
                   return (
-                    <p key={index} className="text-xs text-muted-foreground">
+                    <p key={index} className="text-xs text-slate-400">
                       {part.text}
                     </p>
                   );
@@ -84,7 +84,7 @@ export function RuleChat({ projectId }: { projectId: string }) {
 
                 if (part.type.includes("tool")) {
                   return (
-                    <div key={index} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+                    <div key={index} className="rounded-[0.65rem] border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                       Rule proposal executed.
                     </div>
                   );
@@ -104,9 +104,7 @@ export function RuleChat({ projectId }: { projectId: string }) {
           className="min-h-[110px]"
         />
         <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            Direct in, durable rule out.
-          </p>
+          <p className="text-xs text-slate-400">Direct in, durable rule out.</p>
           <Button type="submit" disabled={status !== "ready" && status !== "error"}>
             {status === "submitted" || status === "streaming" ? "Thinking..." : "Create Rule"}
           </Button>

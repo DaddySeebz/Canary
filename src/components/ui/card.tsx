@@ -6,7 +6,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,oklch(0.2_0.008_75),oklch(0.17_0.008_75))] shadow-[0_24px_60px_-40px_rgba(0,0,0,0.7)]",
+        "workspace-panel rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-[color:var(--workspace-elevated)] text-[color:var(--workspace-ink)]",
         className,
       )}
       {...props}
@@ -19,11 +19,11 @@ export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
 }
 
 export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-lg font-semibold tracking-tight", className)} {...props} />;
+  return <h3 className={cn("text-lg font-semibold tracking-tight text-[color:var(--workspace-ink)]", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn("text-sm text-muted-foreground", className)} {...props} />;
+  return <p className={cn("text-sm text-[color:var(--workspace-muted)]", className)} {...props} />;
 }
 
 export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

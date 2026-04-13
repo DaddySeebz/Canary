@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { label: "Dashboard", href: "" },
-  { label: "Setup", href: "/setup" },
-  { label: "History", href: "/history" },
+  { label: "Audits", href: "/audits" },
+  { label: "Monitoring", href: "/monitoring" },
+  { label: "Intelligence", href: "/intelligence" },
 ];
 
 export function ProjectNav({ projectId }: { projectId: string }) {
@@ -25,8 +25,8 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             key={href}
             href={href}
             className={cn(
-              "relative py-4 text-sm text-muted-foreground transition-colors hover:text-foreground",
-              isActive && "text-foreground",
+              "relative py-4 text-sm font-medium text-slate-500 transition-colors hover:text-slate-950",
+              isActive && "text-slate-950",
             )}
           >
             {link.label}

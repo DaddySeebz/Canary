@@ -1,6 +1,7 @@
 export const schemaSql = `
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
+  user_id TEXT,
   name TEXT NOT NULL,
   description TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
