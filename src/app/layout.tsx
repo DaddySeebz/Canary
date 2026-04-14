@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { isClerkConfigured } from "@/lib/env";
 
 import "./globals.css";
 
@@ -28,15 +29,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const content = (
+    <TooltipProvider>
+      {children}
+      <Toaster richColors position="top-right" theme="dark" />
+    </TooltipProvider>
+  );
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable} bg-background text-foreground antialiased`}>
-        <ClerkProvider signInUrl="/login" signUpUrl="/signup">
-          <TooltipProvider>
-            {children}
-            <Toaster richColors position="top-right" theme="dark" />
-          </TooltipProvider>
-        </ClerkProvider>
+        {isClerkConfigured() ? (
+          <ClerkProvider signInUrl="/login" signUpUrl="/signup">{content}</ClerkProvider>
+        ) : (
+          content
+        )}
       </body>
     </html>
   );

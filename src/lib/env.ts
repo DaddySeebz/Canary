@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 const requiredRuntimeEnvSchema = z.object({
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
-  CLERK_SECRET_KEY: z.string().min(1),
   DATABASE_URL: z.string().min(1),
   BLOB_READ_WRITE_TOKEN: z.string().min(1),
 });
 
 const optionalRuntimeEnvSchema = z.object({
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
+  CLERK_SECRET_KEY: z.string().min(1).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   CANARY_PUBLIC_DEMO_ENABLED: z
     .enum(["true", "false", "1", "0", "yes", "no"])
@@ -54,6 +54,11 @@ export function getDatabaseUrl() {
 
 export function getBlobReadWriteToken() {
   return getRequiredRuntimeEnv().BLOB_READ_WRITE_TOKEN;
+}
+
+export function isClerkConfigured() {
+  const env = getOptionalRuntimeEnv();
+  return Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY);
 }
 
 export function isAiConfigured() {

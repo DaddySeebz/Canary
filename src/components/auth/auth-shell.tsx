@@ -43,7 +43,13 @@ const clerkAppearance = {
   },
 } as const;
 
-export function AuthShell({ mode }: { mode: "signup" | "login" }) {
+export function AuthShell({
+  mode,
+  authEnabled = true,
+}: {
+  mode: "signup" | "login";
+  authEnabled?: boolean;
+}) {
   const isSignup = mode === "signup";
 
   return (
@@ -101,30 +107,40 @@ export function AuthShell({ mode }: { mode: "signup" | "login" }) {
               </p>
             </div>
 
-            {isSignup ? (
-              <SignUp
-                appearance={clerkAppearance}
-                path="/signup"
-                routing="path"
-                signInUrl="/login"
-                fallbackRedirectUrl="/projects"
-              />
+            {authEnabled ? (
+              isSignup ? (
+                <SignUp
+                  appearance={clerkAppearance}
+                  path="/signup"
+                  routing="path"
+                  signInUrl="/login"
+                  fallbackRedirectUrl="/projects"
+                />
+              ) : (
+                <SignIn
+                  appearance={clerkAppearance}
+                  path="/login"
+                  routing="path"
+                  signUpUrl="/signup"
+                  fallbackRedirectUrl="/projects"
+                />
+              )
             ) : (
-              <SignIn
-                appearance={clerkAppearance}
-                path="/login"
-                routing="path"
-                signUpUrl="/signup"
-                fallbackRedirectUrl="/projects"
-              />
+              <div className="rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 p-5 text-sm leading-7 text-slate-500">
+                Authentication is not configured for this deployment yet. Add
+                `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` in Vercel project settings,
+                then redeploy.
+              </div>
             )}
 
-            <p className="text-sm text-slate-500">
-              {isSignup ? "Already have an account?" : "Need a Canary account?"}{" "}
-              <Link href={isSignup ? "/login" : "/signup"} className="font-semibold text-amber-700">
-                {isSignup ? "Log in" : "Create one"}
-              </Link>
-            </p>
+            {authEnabled ? (
+              <p className="text-sm text-slate-500">
+                {isSignup ? "Already have an account?" : "Need a Canary account?"}{" "}
+                <Link href={isSignup ? "/login" : "/signup"} className="font-semibold text-amber-700">
+                  {isSignup ? "Log in" : "Create one"}
+                </Link>
+              </p>
+            ) : null}
             <p className="text-xs leading-6 text-slate-400">
               By continuing you agree to our{" "}
               <Link href="/terms" className="underline">

@@ -2,8 +2,13 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 
 import { getProjectById } from "@/lib/db/projects";
+import { isClerkConfigured } from "@/lib/env";
 
 export async function requireUserId() {
+  if (!isClerkConfigured()) {
+    redirect("/login");
+  }
+
   const { userId } = await auth();
 
   if (!userId) {
@@ -14,6 +19,10 @@ export async function requireUserId() {
 }
 
 export async function getOptionalUserId() {
+  if (!isClerkConfigured()) {
+    return null;
+  }
+
   const { userId } = await auth();
   return userId;
 }
