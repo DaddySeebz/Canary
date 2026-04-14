@@ -5,6 +5,7 @@ export function ROICard({
   projectId,
   impact,
   inputs,
+  readOnly = false,
 }: {
   projectId: string;
   impact: {
@@ -19,6 +20,7 @@ export function ROICard({
     hourly_rate: number;
     volume_per_period: number;
   };
+  readOnly?: boolean;
 }) {
   return (
     <Card>
@@ -29,7 +31,7 @@ export function ROICard({
             Conservative estimates only. Canary assumes a 70% fix rate and floors every number.
           </p>
         </div>
-        <ROIInputsDialog projectId={projectId} initialValues={inputs} />
+        {readOnly ? null : <ROIInputsDialog projectId={projectId} initialValues={inputs} />}
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
         <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">

@@ -23,10 +23,16 @@ export default async function ProjectIntelligencePage({
   const { id } = await params;
   await requireOwnedProject(id);
 
-  const bundle = getFindingsBundle(id);
-  const rules = listProjectRules(id);
-  const roiSettings =
-    getROISettings(id) || {
+  const [bundle, rules, roiSettings, insights, activity, completedRuns] = await Promise.all([
+    getFindingsBundle(id),
+    listProjectRules(id),
+    getROISettings(id),
+    listProjectInsights(id),
+    listActivity(id),
+    listCompletedRuns(id, 6),
+  ]);
+  const resolvedRoiSettings =
+    roiSettings || {
       cost_per_error: 0,
       time_per_fix_minutes: 0,
       hourly_rate: 0,
@@ -40,15 +46,11 @@ export default async function ProjectIntelligencePage({
   );
 
   const roiImpact = calculateRoiImpact(bundle?.run.total_violations ?? 0, bundle?.run.total_rows_checked ?? 0, {
-    costPerError: roiSettings.cost_per_error,
-    avgFixMinutes: roiSettings.time_per_fix_minutes,
-    hourlyRate: roiSettings.hourly_rate,
-    volumePerPeriod: roiSettings.volume_per_period,
+    costPerError: resolvedRoiSettings.cost_per_error,
+    avgFixMinutes: resolvedRoiSettings.time_per_fix_minutes,
+    hourlyRate: resolvedRoiSettings.hourly_rate,
+    volumePerPeriod: resolvedRoiSettings.volume_per_period,
   });
-
-  const insights = listProjectInsights(id);
-  const activity = listActivity(id);
-  const completedRuns = listCompletedRuns(id, 6);
 
   return (
     <div className="space-y-6">
@@ -90,7 +92,7 @@ export default async function ProjectIntelligencePage({
 
       <section className="grid gap-6 xl:grid-cols-2">
         <SigmaScore sigma={sigma.sigma} dpmo={sigma.dpmo} yieldValue={sigma.yield} label={sigma.label} />
-        <ROICard projectId={id} impact={roiImpact} inputs={roiSettings} />
+        <ROICard projectId={id} impact={roiImpact} inputs={resolvedRoiSettings} />
       </section>
 
       <section className="workspace-panel rounded-[0.9rem] border border-[color:var(--workspace-border)] p-6">

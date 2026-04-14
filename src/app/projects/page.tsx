@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ProjectsIndexPage() {
   const userId = await requireUserId();
-  const projects = listProjectsWithStats(userId);
+  const projects = await listProjectsWithStats(userId);
   const totals = projects.reduce(
     (acc, project) => {
       acc.files += project.file_count;

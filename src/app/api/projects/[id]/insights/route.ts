@@ -25,11 +25,11 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const runs = listCompletedRuns(id, 6);
+  const runs = await listCompletedRuns(id, 6);
 
   if (runs.length < 3) {
     return NextResponse.json({
@@ -38,21 +38,25 @@ export async function GET(
     });
   }
 
-  const latestRun = getLatestRun(id);
+  const latestRun = await getLatestRun(id);
   if (!latestRun) {
     return NextResponse.json({ insights: [] });
   }
 
-  const existing = listInsightsForRun(id, latestRun.id);
+  const existing = await listInsightsForRun(id, latestRun.id);
   if (existing.length > 0) {
     return NextResponse.json({ insights: existing });
   }
 
-  const patterns = detectPatterns(id);
+  const patterns = await detectPatterns(id);
   const insights = await generateInsights(id, patterns);
 
-  replaceInsightsForRun(id, latestRun.id, insights);
-  logActivity(id, "insights.generated", JSON.stringify({ runId: latestRun.id, count: insights.length }));
+  await replaceInsightsForRun(id, latestRun.id, insights);
+  await logActivity(
+    id,
+    "insights.generated",
+    JSON.stringify({ runId: latestRun.id, count: insights.length }),
+  );
 
   return NextResponse.json({ insights });
 }

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { getDatabase, parseJsonColumn, toJson } from "@/lib/db";
+import { getDatabase, parseJsonColumn, queryRow, queryRows, toJson } from "@/lib/db";
 import type { AuditRuleRecord } from "@/lib/db/types";
 import type { RuleSeverity, RuleType } from "@/lib/rules/types";
 
@@ -17,36 +17,34 @@ function mapRuleRow(row: RawRuleRow): AuditRuleRecord {
   };
 }
 
-export function listProjectRules(projectId: string) {
-  const rows = getDatabase()
-    .prepare(
-      `SELECT id, project_id, description_plain, rule_type, rule_config, severity, created_at, active
-       FROM audit_rules
-       WHERE project_id = ?
-       ORDER BY datetime(created_at) DESC`,
-    )
-    .all(projectId) as RawRuleRow[];
+export async function listProjectRules(projectId: string) {
+  const rows = await queryRows<RawRuleRow>(
+    `SELECT id, project_id, description_plain, rule_type, rule_config, severity, created_at, active
+     FROM audit_rules
+     WHERE project_id = $1
+     ORDER BY created_at DESC`,
+    [projectId],
+  );
 
   return rows.map(mapRuleRow);
 }
 
-export function listActiveProjectRules(projectId: string) {
-  return listProjectRules(projectId).filter((rule) => rule.active);
+export async function listActiveProjectRules(projectId: string) {
+  return (await listProjectRules(projectId)).filter((rule) => rule.active);
 }
 
-export function getRuleById(ruleId: string) {
-  const row = getDatabase()
-    .prepare(
-      `SELECT id, project_id, description_plain, rule_type, rule_config, severity, created_at, active
-       FROM audit_rules
-       WHERE id = ?`,
-    )
-    .get(ruleId) as RawRuleRow | undefined;
+export async function getRuleById(ruleId: string) {
+  const row = await queryRow<RawRuleRow>(
+    `SELECT id, project_id, description_plain, rule_type, rule_config, severity, created_at, active
+     FROM audit_rules
+     WHERE id = $1`,
+    [ruleId],
+  );
 
   return row ? mapRuleRow(row) : null;
 }
 
-export function createRule(input: {
+export async function createRule(input: {
   projectId: string;
   descriptionPlain: string;
   ruleType: RuleType;
@@ -64,21 +62,26 @@ export function createRule(input: {
     active: true,
   };
 
-  getDatabase()
-    .prepare(
-      `INSERT INTO audit_rules (id, project_id, description_plain, rule_type, rule_config, severity, created_at, active)
-       VALUES (@id, @project_id, @description_plain, @rule_type, @rule_config, @severity, @created_at, @active)`,
-    )
-    .run({
-      ...rule,
-      rule_config: toJson(rule.rule_config),
-      active: 1,
-    });
+  const db = await getDatabase();
+  await db.query(
+    `INSERT INTO audit_rules (id, project_id, description_plain, rule_type, rule_config, severity, created_at, active)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      rule.id,
+      rule.project_id,
+      rule.description_plain,
+      rule.rule_type,
+      toJson(rule.rule_config),
+      rule.severity,
+      rule.created_at,
+      rule.active,
+    ],
+  );
 
   return rule;
 }
 
-export function updateRule(
+export async function updateRule(
   ruleId: string,
   input: Partial<{
     descriptionPlain: string;
@@ -88,7 +91,7 @@ export function updateRule(
     active: boolean;
   }>,
 ) {
-  const existing = getRuleById(ruleId);
+  const existing = await getRuleById(ruleId);
   if (!existing) {
     return null;
   }
@@ -102,25 +105,33 @@ export function updateRule(
     active: input.active ?? existing.active,
   };
 
-  getDatabase()
-    .prepare(
-      `UPDATE audit_rules
-       SET description_plain = @description_plain,
-           rule_type = @rule_type,
-           rule_config = @rule_config,
-           severity = @severity,
-           active = @active
-       WHERE id = @id`,
-    )
-    .run({
-      ...updated,
-      rule_config: toJson(updated.rule_config),
-      active: updated.active ? 1 : 0,
-    });
+  const db = await getDatabase();
+  await db.query(
+    `UPDATE audit_rules
+     SET description_plain = $1,
+         rule_type = $2,
+         rule_config = $3,
+         severity = $4,
+         active = $5
+     WHERE id = $6`,
+    [
+      updated.description_plain,
+      updated.rule_type,
+      toJson(updated.rule_config),
+      updated.severity,
+      updated.active,
+      updated.id,
+    ],
+  );
 
   return updated;
 }
 
-export function deleteRule(ruleId: string) {
-  return getDatabase().prepare(`DELETE FROM audit_rules WHERE id = ?`).run(ruleId).changes > 0;
+export async function deleteRule(ruleId: string) {
+  const deleted = await queryRow<{ id: string }>(
+    `DELETE FROM audit_rules WHERE id = $1 RETURNING id`,
+    [ruleId],
+  );
+
+  return Boolean(deleted);
 }

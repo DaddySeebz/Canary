@@ -3,9 +3,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { deleteProjectUploads } from "@/lib/csv/storage";
+import { listProjectFiles } from "@/lib/db/files";
 import { logActivity } from "@/lib/db/activity";
 import {
   deleteProject,
+  getProjectById,
   getProjectSummary,
   updateProject,
 } from "@/lib/db/projects";
@@ -28,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const project = getProjectSummary(id, userId);
+  const project = await getProjectSummary(id, userId);
 
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -54,12 +56,12 @@ export async function PUT(
     return NextResponse.json({ error: body.error.flatten() }, { status: 400 });
   }
 
-  const project = updateProject(id, userId, body.data);
+  const project = await updateProject(id, userId, body.data);
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  logActivity(id, "project.updated", JSON.stringify(body.data));
+  await logActivity(id, "project.updated", JSON.stringify(body.data));
   return NextResponse.json({ project });
 }
 
@@ -74,12 +76,19 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const deleted = deleteProject(id, userId);
+  const project = await getProjectById(id, userId);
+
+  if (!project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  const files = await listProjectFiles(id);
+  const deleted = await deleteProject(id, userId);
 
   if (!deleted) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  deleteProjectUploads(id);
+  await deleteProjectUploads(files.map((file) => file.filename));
   return NextResponse.json({ success: true });
 }

@@ -1,5 +1,5 @@
-import { parseCsvFile } from "@/lib/csv/parser";
-import { getStoredCsvPath } from "@/lib/csv/storage";
+import { parseCsvText } from "@/lib/csv/parser";
+import { readStoredCsvText } from "@/lib/csv/storage";
 import { logActivity } from "@/lib/db/activity";
 import { listProjectFiles } from "@/lib/db/files";
 import { listActiveProjectRules } from "@/lib/db/rules";
@@ -12,7 +12,7 @@ import {
 } from "@/lib/db/runs";
 import { touchProject } from "@/lib/db/projects";
 import type { AuditRuleRecord } from "@/lib/db/types";
-import type { EvalContext, EvalFinding, RuleType } from "@/lib/rules/types";
+import type { EvalContext, EvalFinding, RuleSeverity, RuleType } from "@/lib/rules/types";
 import { validateRuleConfig } from "@/lib/rules/schemas";
 import { requiredFieldEvaluator } from "@/lib/rules/evaluators/required-field";
 import { dateComparisonEvaluator } from "@/lib/rules/evaluators/date-comparison";
@@ -22,6 +22,17 @@ import { uniquenessEvaluator } from "@/lib/rules/evaluators/uniqueness";
 import { valueMatchEvaluator } from "@/lib/rules/evaluators/value-match";
 import { crossFileEvaluator } from "@/lib/rules/evaluators/cross-file";
 import { customExpressionEvaluator } from "@/lib/rules/evaluators/custom-expression";
+
+type PendingFindingInsert = {
+  file_id: string;
+  row_number: number;
+  column_name: string | null;
+  value: string | null;
+  expected: string | null;
+  message: string;
+  rule_id: string;
+  severity: RuleSeverity;
+};
 
 const evaluators = {
   required_field: requiredFieldEvaluator,
@@ -70,12 +81,14 @@ function buildResolution(rule: AuditRuleRecord, findings: EvalFinding[]) {
 
 export async function runAudit(projectId: string) {
   const startedAt = Date.now();
-  const run = createAuditRun(projectId);
-  const files = listProjectFiles(projectId);
-  const rules = listActiveProjectRules(projectId);
+  const run = await createAuditRun(projectId);
+  const [files, rules] = await Promise.all([
+    listProjectFiles(projectId),
+    listActiveProjectRules(projectId),
+  ]);
 
   if (files.length === 0 || rules.length === 0) {
-    failAuditRun(run.id);
+    await failAuditRun(run.id);
     throw new Error("Audit requires at least one CSV file and one active rule.");
   }
 
@@ -83,7 +96,7 @@ export async function runAudit(projectId: string) {
     const contexts = new Map<string, EvalContext>();
 
     for (const file of files) {
-      const parsed = parseCsvFile(getStoredCsvPath(projectId, file.filename));
+      const parsed = parseCsvText(await readStoredCsvText(file.filename));
       contexts.set(file.id, {
         fileId: file.id,
         rows: parsed.rows,
@@ -91,9 +104,7 @@ export async function runAudit(projectId: string) {
       });
     }
 
-    const findingsToInsert: Array<
-      Omit<ReturnType<typeof insertFindings>[number], "id" | "run_id">
-    > = [];
+    const findingsToInsert: PendingFindingInsert[] = [];
     const resolutions = [];
     let totalRowsChecked = 0;
 
@@ -117,8 +128,8 @@ export async function runAudit(projectId: string) {
       resolutions.push(buildResolution(rule, findings));
     }
 
-    insertFindings(run.id, findingsToInsert);
-    insertResolutions(run.id, resolutions);
+    await insertFindings(run.id, findingsToInsert);
+    await insertResolutions(run.id, resolutions);
 
     const denominator = Math.max(totalRowsChecked * rules.length, 1);
     const totalViolations = findingsToInsert.length;
@@ -127,7 +138,7 @@ export async function runAudit(projectId: string) {
       Math.round(100 * (1 - totalViolations / denominator)),
     );
 
-    completeAuditRun({
+    await completeAuditRun({
       runId: run.id,
       totalViolations,
       totalRowsChecked,
@@ -135,8 +146,8 @@ export async function runAudit(projectId: string) {
       healthScore,
     });
 
-    touchProject(projectId);
-    logActivity(
+    await touchProject(projectId);
+    await logActivity(
       projectId,
       "audit.run",
       JSON.stringify({
@@ -155,7 +166,7 @@ export async function runAudit(projectId: string) {
       health_score: healthScore,
     };
   } catch (error) {
-    failAuditRun(run.id);
+    await failAuditRun(run.id);
     throw error;
   }
 }

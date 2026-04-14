@@ -26,12 +26,12 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
   return NextResponse.json({
-    roi: getROISettings(id),
+    roi: await getROISettings(id),
   });
 }
 
@@ -46,7 +46,7 @@ export async function PUT(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
@@ -56,8 +56,8 @@ export async function PUT(
     return NextResponse.json({ error: body.error.flatten() }, { status: 400 });
   }
 
-  const roi = upsertROISettings(id, body.data);
-  logActivity(id, "roi.updated", JSON.stringify(body.data));
+  const roi = await upsertROISettings(id, body.data);
+  await logActivity(id, "roi.updated", JSON.stringify(body.data));
 
   return NextResponse.json({ roi });
 }

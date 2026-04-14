@@ -28,11 +28,11 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ files: listProjectFiles(id) });
+  return NextResponse.json({ files: await listProjectFiles(id) });
 }
 
 export async function POST(
@@ -46,7 +46,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const project = getProjectById(id, userId);
+  const project = await getProjectById(id, userId);
 
   if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
@@ -66,9 +66,9 @@ export async function POST(
   const buffer = Buffer.from(await file.arrayBuffer());
   const text = buffer.toString("utf8");
   const metadata = getCsvMetadata(text);
-  const stored = saveUploadedCsv(id, buffer);
+  const stored = await saveUploadedCsv(id, buffer);
 
-  const created = createFileRecord({
+  const created = await createFileRecord({
     projectId: id,
     filename: stored.filename,
     originalName: file.name,
@@ -78,13 +78,16 @@ export async function POST(
     fileSize: buffer.byteLength,
   });
 
-  createFileSnapshot(created.id, metadata.columns, metadata.rowCount);
+  await createFileSnapshot(created.id, metadata.columns, metadata.rowCount);
 
-  const previousFile = getPreviousFileVersion(id, file.name, created.id);
-  const schemaDiff = diffSchema(previousFile, created, listProjectRules(id));
+  const [previousFile, rules] = await Promise.all([
+    getPreviousFileVersion(id, file.name, created.id),
+    listProjectRules(id),
+  ]);
+  const schemaDiff = diffSchema(previousFile, created, rules);
 
-  touchProject(id);
-  logActivity(
+  await touchProject(id);
+  await logActivity(
     id,
     "file.uploaded",
     JSON.stringify({ fileId: created.id, originalName: file.name, rowCount: created.row_count }),

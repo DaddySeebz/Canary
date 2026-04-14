@@ -14,10 +14,12 @@ export function SetupClient({
   projectId,
   files,
   rules,
+  aiEnabled = true,
 }: {
   projectId: string;
   files: FileRecord[];
   rules: AuditRuleRecord[];
+  aiEnabled?: boolean;
 }) {
   const [fileState, setFileState] = useState(files);
   const [schemaDiff, setSchemaDiff] = useState<SchemaDiffResult | null>(null);
@@ -88,7 +90,7 @@ export function SetupClient({
               <CardTitle className="text-2xl">Canary assistant</CardTitle>
             </CardHeader>
             <CardContent className="h-[calc(100%-6rem)] pt-6">
-              <RuleChat projectId={projectId} />
+              <RuleChat projectId={projectId} enabled={aiEnabled} />
             </CardContent>
           </Card>
           <div className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-[#fff7e7] p-5">

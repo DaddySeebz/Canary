@@ -22,11 +22,11 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ rules: listProjectRules(id) });
+  return NextResponse.json({ rules: await listProjectRules(id) });
 }
 
 export async function POST(
@@ -40,7 +40,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
@@ -51,7 +51,7 @@ export async function POST(
   }
 
   const validatedConfig = validateRuleConfig(body.data.rule_type, body.data.rule_config);
-  const rule = createRule({
+  const rule = await createRule({
     projectId: id,
     descriptionPlain: body.data.description_plain,
     ruleType: body.data.rule_type,
@@ -59,8 +59,8 @@ export async function POST(
     severity: body.data.severity,
   });
 
-  touchProject(id);
-  logActivity(id, "rule.created", JSON.stringify({ ruleId: rule.id, type: rule.rule_type }));
+  await touchProject(id);
+  await logActivity(id, "rule.created", JSON.stringify({ ruleId: rule.id, type: rule.rule_type }));
 
   return NextResponse.json({ rule }, { status: 201 });
 }

@@ -46,7 +46,7 @@ export async function generateInsights(projectId: string, patterns: DetectedPatt
   }
 
   try {
-    const runs = listCompletedRuns(projectId, 6);
+    const runs = await listCompletedRuns(projectId, 6);
     const prompt = [
       "You are Canary's root-cause analyst.",
       "Turn the detected data quality patterns into concise, evidence-backed insights.",

@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS projects (
   user_id TEXT,
   name TEXT NOT NULL,
   description TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS files (
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS files (
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   filename TEXT NOT NULL,
   original_name TEXT NOT NULL,
-  uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+  uploaded_at TEXT NOT NULL,
   row_count INTEGER NOT NULL DEFAULT 0,
   columns TEXT NOT NULL DEFAULT '[]',
   sample_data TEXT,
@@ -27,14 +27,14 @@ CREATE TABLE IF NOT EXISTS audit_rules (
   rule_type TEXT NOT NULL,
   rule_config TEXT NOT NULL DEFAULT '{}',
   severity TEXT NOT NULL DEFAULT 'critical',
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  active INTEGER NOT NULL DEFAULT 1
+  created_at TEXT NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS audit_runs (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  ran_at TEXT NOT NULL DEFAULT (datetime('now')),
+  ran_at TEXT NOT NULL,
   total_violations INTEGER NOT NULL DEFAULT 0,
   total_rows_checked INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'pending',
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS file_snapshots (
   file_id TEXT NOT NULL REFERENCES files(id) ON DELETE CASCADE,
   columns TEXT NOT NULL DEFAULT '[]',
   row_count INTEGER NOT NULL DEFAULT 0,
-  uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
+  uploaded_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS roi_settings (
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS roi_settings (
   time_per_fix_minutes REAL NOT NULL DEFAULT 0,
   hourly_rate REAL NOT NULL DEFAULT 0,
   volume_per_period INTEGER NOT NULL DEFAULT 0,
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS insights (
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS insights (
   recommendation TEXT,
   severity TEXT NOT NULL DEFAULT 'info',
   status TEXT NOT NULL DEFAULT 'new',
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS activity_log (
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS activity_log (
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   action TEXT NOT NULL,
   details TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);

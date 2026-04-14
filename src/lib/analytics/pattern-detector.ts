@@ -9,16 +9,16 @@ export interface DetectedPattern {
   severity: "critical" | "warning" | "info";
 }
 
-export function detectPatterns(projectId: string): DetectedPattern[] {
-  const runs = listCompletedRuns(projectId, 6);
+export async function detectPatterns(projectId: string): Promise<DetectedPattern[]> {
+  const runs = await listCompletedRuns(projectId, 6);
   if (runs.length < 3) {
     return [];
   }
 
-  const rules = new Map(listProjectRules(projectId).map((rule) => [rule.id, rule]));
+  const rules = new Map((await listProjectRules(projectId)).map((rule) => [rule.id, rule]));
   const byRule = new Map<string, number[]>();
 
-  for (const row of getRunRuleCounts(projectId)) {
+  for (const row of await getRunRuleCounts(projectId)) {
     if (!row.rule_id) {
       continue;
     }

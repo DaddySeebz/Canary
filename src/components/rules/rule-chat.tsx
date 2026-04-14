@@ -9,7 +9,26 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-export function RuleChat({ projectId }: { projectId: string }) {
+function DisabledRuleChat() {
+  return (
+    <div className="flex h-full flex-col gap-4">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+          <Sparkles className="h-4 w-4 text-amber-600" />
+          Rule chat
+        </div>
+        <p className="text-sm text-slate-500">
+          AI rule authoring is disabled on this deployment until `OPENROUTER_API_KEY` is configured.
+        </p>
+      </div>
+      <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-[0.75rem] border border-dashed border-[color:var(--workspace-border)] bg-slate-50 p-6 text-center text-sm text-slate-500">
+        Uploads, rules, and audits still work. Natural-language rule drafting will appear here once the AI key is connected.
+      </div>
+    </div>
+  );
+}
+
+function EnabledRuleChat({ projectId }: { projectId: string }) {
   const router = useRouter();
   const [input, setInput] = useState("");
   const transport = useMemo(
@@ -112,4 +131,18 @@ export function RuleChat({ projectId }: { projectId: string }) {
       </form>
     </div>
   );
+}
+
+export function RuleChat({
+  projectId,
+  enabled = true,
+}: {
+  projectId: string;
+  enabled?: boolean;
+}) {
+  if (!enabled) {
+    return <DisabledRuleChat />;
+  }
+
+  return <EnabledRuleChat projectId={projectId} />;
 }

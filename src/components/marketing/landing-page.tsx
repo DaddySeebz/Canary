@@ -79,7 +79,13 @@ function Panel({
   );
 }
 
-export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
+export function LandingPage({
+  hasWorkspace,
+  hasPublicDemo = false,
+}: {
+  hasWorkspace: boolean;
+  hasPublicDemo?: boolean;
+}) {
   const primaryHref = hasWorkspace ? "/projects" : "/signup";
 
   return (
@@ -99,9 +105,16 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
                 Alerting
               </a>
             </nav>
-            <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "min-w-[220px]")}>
-              Start your first audit
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              {hasPublicDemo ? (
+                <Link href="/demo" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
+                  Open demo workspace
+                </Link>
+              ) : null}
+              <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "min-w-[220px]")}>
+                Start your first audit
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -125,6 +138,11 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
                   Start your first audit
                   <ArrowRight className="h-4 w-4" />
                 </Link>
+                {hasPublicDemo ? (
+                  <Link href="/demo" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
+                    Open demo workspace
+                  </Link>
+                ) : null}
                 <a href="#monitoring" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
                   See the platform
                 </a>

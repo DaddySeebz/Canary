@@ -12,9 +12,11 @@ const ruleCatalog = [
   `custom_expression: { expression, description, file_id? }`,
 ];
 
-export function buildRuleSystemPrompt(projectId: string) {
-  const files = listProjectFiles(projectId);
-  const rules = listProjectRules(projectId);
+export async function buildRuleSystemPrompt(projectId: string) {
+  const [files, rules] = await Promise.all([
+    listProjectFiles(projectId),
+    listProjectRules(projectId),
+  ]);
 
   const fileContext =
     files.length === 0

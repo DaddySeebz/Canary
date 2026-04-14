@@ -17,13 +17,13 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
   const { searchParams } = new URL(request.url);
   const runId = searchParams.get("run_id") || undefined;
-  const bundle = getFindingsBundle(id, runId);
+  const bundle = await getFindingsBundle(id, runId);
 
   if (!bundle) {
     return NextResponse.json({ message: "No audit results yet." });

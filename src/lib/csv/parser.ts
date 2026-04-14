@@ -1,5 +1,3 @@
-import fs from "node:fs";
-
 import Papa from "papaparse";
 
 export interface ParsedCsvData {
@@ -37,8 +35,4 @@ export function getCsvMetadata(text: string) {
     columns,
     sampleData: rows.slice(0, 5),
   };
-}
-
-export function parseCsvFile(filePath: string) {
-  return parseCsvText(fs.readFileSync(filePath, "utf8"));
 }

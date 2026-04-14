@@ -12,9 +12,11 @@ import type { AuditRuleRecord } from "@/lib/db/types";
 export function RuleList({
   projectId,
   rules,
+  readOnly = false,
 }: {
   projectId: string;
   rules: AuditRuleRecord[];
+  readOnly?: boolean;
 }) {
   const router = useRouter();
 
@@ -81,10 +83,18 @@ export function RuleList({
               <div className="text-sm font-medium text-slate-950">{rule.description_plain}</div>
             </div>
             <div className="flex items-center gap-2">
-              <Switch checked={rule.active} onCheckedChange={() => void toggleRule(rule)} />
-              <Button variant="ghost" size="icon" onClick={() => void removeRule(rule)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {readOnly ? (
+                <Badge variant={rule.active ? "passing" : "default"}>
+                  {rule.active ? "active" : "paused"}
+                </Badge>
+              ) : (
+                <>
+                  <Switch checked={rule.active} onCheckedChange={() => void toggleRule(rule)} />
+                  <Button variant="ghost" size="icon" onClick={() => void removeRule(rule)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

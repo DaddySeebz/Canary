@@ -20,7 +20,7 @@ export async function getOptionalUserId() {
 
 export async function requireOwnedProject(projectId: string) {
   const userId = await requireUserId();
-  const project = getProjectById(projectId, userId);
+  const project = await getProjectById(projectId, userId);
 
   if (!project) {
     notFound();

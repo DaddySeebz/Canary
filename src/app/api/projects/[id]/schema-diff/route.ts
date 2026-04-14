@@ -19,7 +19,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
@@ -30,13 +30,16 @@ export async function GET(
     return NextResponse.json({ error: "file_id is required" }, { status: 400 });
   }
 
-  const currentFile = getFileById(fileId);
+  const currentFile = await getFileById(fileId);
   if (!currentFile || currentFile.project_id !== id) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
-  const previousFile = getPreviousFileVersion(id, currentFile.original_name, currentFile.id);
-  const schemaDiff = diffSchema(previousFile, currentFile, listProjectRules(id));
+  const [previousFile, rules] = await Promise.all([
+    getPreviousFileVersion(id, currentFile.original_name, currentFile.id),
+    listProjectRules(id),
+  ]);
+  const schemaDiff = diffSchema(previousFile, currentFile, rules);
 
   return NextResponse.json(schemaDiff);
 }

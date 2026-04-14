@@ -40,11 +40,11 @@ export async function PUT(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const existing = getRuleById(ruleId);
+  const existing = await getRuleById(ruleId);
 
   if (!existing || existing.project_id !== id) {
     return NextResponse.json({ error: "Rule not found" }, { status: 404 });
@@ -60,7 +60,7 @@ export async function PUT(
     ? validateRuleConfig(ruleType, body.data.rule_config)
     : undefined;
 
-  const updated = updateRule(ruleId, {
+  const updated = await updateRule(ruleId, {
     descriptionPlain: body.data.description_plain,
     ruleType: body.data.rule_type,
     ruleConfig,
@@ -68,8 +68,8 @@ export async function PUT(
     active: body.data.active,
   });
 
-  touchProject(id);
-  logActivity(id, "rule.updated", JSON.stringify({ ruleId, changes: body.data }));
+  await touchProject(id);
+  await logActivity(id, "rule.updated", JSON.stringify({ ruleId, changes: body.data }));
 
   return NextResponse.json({ rule: updated });
 }
@@ -85,19 +85,19 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!getProjectById(id, userId)) {
+  if (!(await getProjectById(id, userId))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const rule = getRuleById(ruleId);
+  const rule = await getRuleById(ruleId);
 
   if (!rule || rule.project_id !== id) {
     return NextResponse.json({ error: "Rule not found" }, { status: 404 });
   }
 
-  deleteRule(ruleId);
-  touchProject(id);
-  logActivity(id, "rule.deleted", JSON.stringify({ ruleId, type: rule.rule_type }));
+  await deleteRule(ruleId);
+  await touchProject(id);
+  await logActivity(id, "rule.deleted", JSON.stringify({ ruleId, type: rule.rule_type }));
 
   return NextResponse.json({ success: true });
 }

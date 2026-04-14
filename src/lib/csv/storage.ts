@@ -1,40 +1,42 @@
-import fs from "node:fs";
-import path from "node:path";
-
+import { del, get, put } from "@vercel/blob";
 import { v4 as uuidv4 } from "uuid";
 
-import { getDefaultUploadDir } from "@/lib/runtime";
+import { getBlobReadWriteToken } from "@/lib/env";
 
-function getBaseUploadDir() {
-  const configuredPath = process.env.UPLOAD_DIR || getDefaultUploadDir();
-  if (path.isAbsolute(configuredPath)) {
-    return configuredPath;
+function buildBlobPath(projectId: string, filename: string) {
+  return `projects/${projectId}/${filename}`;
+}
+
+export async function saveUploadedCsv(projectId: string, buffer: Buffer) {
+  const filename = `${uuidv4()}.csv`;
+  const blob = await put(buildBlobPath(projectId, filename), buffer, {
+    access: "private",
+    allowOverwrite: false,
+    contentType: "text/csv",
+    token: getBlobReadWriteToken(),
+  });
+
+  return { filename: blob.pathname, fullPath: blob.url };
+}
+
+export async function readStoredCsvText(pathname: string) {
+  const blob = await get(pathname, {
+    access: "private",
+    useCache: false,
+    token: getBlobReadWriteToken(),
+  });
+
+  if (!blob || blob.statusCode !== 200) {
+    throw new Error("Uploaded CSV could not be loaded from storage.");
   }
 
-  return path.resolve(
-    /* turbopackIgnore: true */ process.cwd(),
-    configuredPath,
-  );
+  return await new Response(blob.stream).text();
 }
 
-export function ensureProjectUploadDir(projectId: string) {
-  const dir = path.join(getBaseUploadDir(), projectId);
-  fs.mkdirSync(dir, { recursive: true });
-  return dir;
-}
+export async function deleteProjectUploads(pathnames: string[]) {
+  if (pathnames.length === 0) {
+    return;
+  }
 
-export function saveUploadedCsv(projectId: string, buffer: Buffer) {
-  const projectDir = ensureProjectUploadDir(projectId);
-  const filename = `${uuidv4()}.csv`;
-  const fullPath = path.join(projectDir, filename);
-  fs.writeFileSync(fullPath, buffer);
-  return { filename, fullPath };
-}
-
-export function getStoredCsvPath(projectId: string, filename: string) {
-  return path.join(getBaseUploadDir(), projectId, filename);
-}
-
-export function deleteProjectUploads(projectId: string) {
-  fs.rmSync(path.join(getBaseUploadDir(), projectId), { recursive: true, force: true });
+  await del(pathnames, { token: getBlobReadWriteToken() });
 }

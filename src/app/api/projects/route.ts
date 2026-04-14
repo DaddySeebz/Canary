@@ -19,7 +19,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ projects: listProjectsWithStats(userId) });
+  return NextResponse.json({ projects: await listProjectsWithStats(userId) });
 }
 
 export async function POST(request: Request) {
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: body.error.flatten() }, { status: 400 });
   }
 
-  const project = createProject({ ...body.data, userId });
-  logActivity(project.id, "project.created", JSON.stringify({ name: project.name }));
+  const project = await createProject({ ...body.data, userId });
+  await logActivity(project.id, "project.created", JSON.stringify({ name: project.name }));
 
   return NextResponse.json({ project }, { status: 201 });
 }

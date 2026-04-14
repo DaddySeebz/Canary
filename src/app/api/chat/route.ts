@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { buildRuleSystemPrompt } from "@/lib/ai/system-prompt";
 import { getModel } from "@/lib/ai/provider";
+import { isAiConfigured } from "@/lib/env";
 import { logActivity } from "@/lib/db/activity";
 import { getProjectById } from "@/lib/db/projects";
 import { touchProject } from "@/lib/db/projects";
@@ -25,6 +26,19 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!isAiConfigured()) {
+    return new Response(
+      JSON.stringify({
+        error: "AI rule chat is not configured for this deployment.",
+        code: "ai_feature_disabled",
+      }),
+      {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  }
+
   const { userId } = await auth();
 
   if (!userId) {
@@ -43,7 +57,7 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!getProjectById(body.data.projectId, userId)) {
+  if (!(await getProjectById(body.data.projectId, userId))) {
     return new Response(JSON.stringify({ error: "Project not found" }), {
       status: 404,
       headers: { "content-type": "application/json" },
@@ -52,7 +66,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model: getModel(),
-    system: buildRuleSystemPrompt(body.data.projectId),
+    system: await buildRuleSystemPrompt(body.data.projectId),
     messages: await convertToModelMessages(
       body.data.messages.map((message) => {
         const { id, ...payload } = message as UIMessage & { id?: string };
@@ -67,7 +81,7 @@ export async function POST(request: Request) {
         inputSchema: genericRuleSchema,
         execute: async (input) => {
           const ruleConfig = validateRuleConfig(input.rule_type, input.rule_config);
-          const rule = createRule({
+          const rule = await createRule({
             projectId: body.data.projectId,
             descriptionPlain: input.description_plain,
             ruleType: input.rule_type,
@@ -75,8 +89,8 @@ export async function POST(request: Request) {
             severity: input.severity,
           });
 
-          touchProject(body.data.projectId);
-          logActivity(
+          await touchProject(body.data.projectId);
+          await logActivity(
             body.data.projectId,
             "rule.created.ai",
             JSON.stringify({ ruleId: rule.id, ruleType: rule.rule_type }),

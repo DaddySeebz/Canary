@@ -1,6 +1,7 @@
 import { requireOwnedProject } from "@/lib/auth";
 import { listProjectFiles } from "@/lib/db/files";
 import { listProjectRules } from "@/lib/db/rules";
+import { isAiConfigured } from "@/lib/env";
 
 import { SetupClient } from "../setup-client";
 
@@ -14,5 +15,10 @@ export default async function ProjectAuditsPage({
   const { id } = await params;
   await requireOwnedProject(id);
 
-  return <SetupClient projectId={id} files={listProjectFiles(id)} rules={listProjectRules(id)} />;
+  const [files, rules] = await Promise.all([
+    listProjectFiles(id),
+    listProjectRules(id),
+  ]);
+
+  return <SetupClient projectId={id} files={files} rules={rules} aiEnabled={isAiConfigured()} />;
 }

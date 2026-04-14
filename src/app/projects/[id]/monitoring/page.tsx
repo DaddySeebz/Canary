@@ -19,11 +19,16 @@ export default async function ProjectMonitoringPage({
   const { id } = await params;
   await requireOwnedProject(id);
 
-  const files = listProjectFiles(id);
-  const rules = listProjectRules(id);
-  const bundle = getFindingsBundle(id);
-  const roiSettings =
-    getROISettings(id) || {
+  const [files, rules, bundle, roiSettings, insights, completedRuns] = await Promise.all([
+    listProjectFiles(id),
+    listProjectRules(id),
+    getFindingsBundle(id),
+    getROISettings(id),
+    listProjectInsights(id),
+    listCompletedRuns(id, 6),
+  ]);
+  const resolvedRoiSettings =
+    roiSettings || {
       cost_per_error: 0,
       time_per_fix_minutes: 0,
       hourly_rate: 0,
@@ -37,10 +42,10 @@ export default async function ProjectMonitoringPage({
   );
 
   const roiImpact = calculateRoiImpact(bundle?.run.total_violations ?? 0, bundle?.run.total_rows_checked ?? 0, {
-    costPerError: roiSettings.cost_per_error,
-    avgFixMinutes: roiSettings.time_per_fix_minutes,
-    hourlyRate: roiSettings.hourly_rate,
-    volumePerPeriod: roiSettings.volume_per_period,
+    costPerError: resolvedRoiSettings.cost_per_error,
+    avgFixMinutes: resolvedRoiSettings.time_per_fix_minutes,
+    hourlyRate: resolvedRoiSettings.hourly_rate,
+    volumePerPeriod: resolvedRoiSettings.volume_per_period,
   });
 
   return (
@@ -54,9 +59,9 @@ export default async function ProjectMonitoringPage({
       summary={bundle?.summary ?? []}
       sigma={sigma}
       roiImpact={roiImpact}
-      roiInputs={roiSettings}
-      insights={listProjectInsights(id)}
-      canUnlockInsights={listCompletedRuns(id, 6).length >= 3}
+      roiInputs={resolvedRoiSettings}
+      insights={insights}
+      canUnlockInsights={completedRuns.length >= 3}
     />
   );
 }
