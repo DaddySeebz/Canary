@@ -1,0 +1,13 @@
+schedule_id,booking_id,opportunity_id,revenue_month,recognized_revenue_usd,deferred_revenue_usd,schedule_status,source_url
+SCH-7001,BKG-5001,OPP-1001,2026-02-01,10000.0,110000.0,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7001/view
+SCH-7002,BKG-5001,OPP-1001,2026-03-01,10000.0,100000.0,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7002/view
+SCH-7003,BKG-5002,OPP-1002,2026-03-01,7041.67,77458.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7003/view
+SCH-7004,BKG-5003,OPP-1003,2026-03-01,7666.67,84333.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7004/view
+SCH-7005,BKG-5004,OPP-1004,2026-03-01,4166.67,45833.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7005/view
+SCH-7006,BKG-5005,OPP-1005,2026-04-01,2666.67,61333.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7006/view
+SCH-7007,BKG-5999,OPP-1999,2026-04-01,2500.0,12500.0,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7007/view
+SCH-7008,,OPP-1008,2026-04-01,3583.33,39416.67,Draft,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7008/view
+SCH-7009,BKG-5008,OPP-1010,2026-05-01,-6333.33,82333.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7009/view
+SCH-7010,BKG-5009,OPP-1009,2026-04-01,3166.67,34833.33,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7010/view
+SCH-7011,BKG-5007,OPP-1008,2026-04-01,3583.33,39416.67,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7011/view
+SCH-7012,BKG-5002,OPP-1002,2026-04-01,7041.67,70416.66,Scheduled,https://canary-demo.my.salesforce.com/lightning/r/RevenueSchedule/SCH-7012/view

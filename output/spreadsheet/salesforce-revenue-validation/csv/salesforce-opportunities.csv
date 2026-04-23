@@ -1,0 +1,11 @@
+opportunity_id,account_id,account_name,close_date,stage_name,forecast_category,amount_usd,currency_iso_code,contract_start_date,contract_end_date,primary_quote_id,owner_name,last_modified_date,source_url
+OPP-1001,ACC-2001,Northwind Health,2026-01-15,Closed Won,Commit,120000.0,USD,2026-02-01,2027-01-31,Q-3001,Avery Chen,2026-01-16,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1001/view
+OPP-1002,ACC-2002,Bluebird Logistics,2026-02-09,Closed Won,Commit,85000.0,USD,2026-03-01,2027-02-28,Q-3002,Priya Raman,2026-02-10,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1002/view
+OPP-1003,ACC-2003,Delta Retail Group,2026-02-17,Closed Won,Commit,,USD,2026-03-01,2027-02-28,Q-3003,Jonas Hale,2026-02-18,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1003/view
+OPP-1004,ACC-2004,Evergreen Media,2026-03-02,Closed Won,Best Case,50000.0,USD,2026-03-15,2026-02-15,Q-3004,Marta Silva,2026-03-03,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1004/view
+OPP-1005,ACC-2005,Granite Utilities,2026-03-14,Closed Won,Commit,64000.0,USD,2026-04-01,2028-03-31,Q-3005,Renee Walker,2026-03-15,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1005/view
+OPP-1006,ACC-2006,Harbor Foods,2026-03-16,Commit,Commit,45000.0,USD,2026-04-01,2027-03-31,Q-3006,Avery Chen,2026-03-17,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1006/view
+OPP-1007,ACC-2007,Ivory Manufacturing,2026-03-19,Renewal Hold,Pipeline,22000.0,USD,2026-04-15,2027-04-14,Q-3007,Priya Raman,2026-03-20,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1007/view
+OPP-1008,ACC-2008,Juniper Bio,2026-03-20,Closed Won,Commit,43000.0,USD,2026-04-01,2027-03-31,Q-3008,Jonas Hale,2026-03-21,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1008/view
+OPP-1008,ACC-2008,Juniper Bio,2026-03-20,Closed Won,Commit,43000.0,USD,2026-04-01,2027-03-31,Q-3008-A,Jonas Hale,2026-03-21,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1008/view
+OPP-1010,ACC-2010,Keystone Services,2026-03-25,Closed Won,Commit,76000.0,USD,2026-05-01,2027-04-30,Q-3010,Marta Silva,2026-03-26,https://canary-demo.my.salesforce.com/lightning/r/Opportunity/OPP-1010/view

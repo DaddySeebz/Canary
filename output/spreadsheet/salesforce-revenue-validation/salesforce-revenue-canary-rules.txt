@@ -1,0 +1,8 @@
+Salesforce Revenue Validation Rules for Canary
+=================================================
+
+1. Opportunity IDs must be unique in the opportunity export.
+2. Amount_usd must be populated on every opportunity row.
+3. Contract_end_date must be after contract_start_date in the opportunity export.
+4. Every booking must match an opportunity by opportunity_id, and booked_arr_usd should reconcile to amount_usd within 1.00 USD.
+5. Every revenue schedule row must match a booking by booking_id.

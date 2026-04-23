@@ -1,0 +1,10 @@
+booking_id,opportunity_id,booking_date,booked_arr_usd,term_months,product_family,revenue_start_date,revenue_end_date,booking_status,source_url
+BKG-5001,OPP-1001,2026-01-20,120000.0,12,Platform,2026-02-01,2027-01-31,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5001/view
+BKG-5002,OPP-1002,2026-02-10,84500.0,12,Analytics,2026-03-01,2027-02-28,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5002/view
+BKG-5003,OPP-1003,2026-02-18,92000.0,12,Platform,2026-03-01,2027-02-28,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5003/view
+BKG-5004,OPP-1004,2026-03-02,50000.0,12,Services,2026-03-15,2026-02-15,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5004/view
+BKG-5005,OPP-1005,2026-03-15,64000.0,24,Platform,2026-04-01,2028-03-31,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5005/view
+BKG-5006,OPP-9999,2026-03-17,15000.0,6,Support,2026-04-01,2026-09-30,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5006/view
+BKG-5007,OPP-1008,2026-03-20,43000.0,12,Analytics,2026-04-01,2027-03-31,Pending,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5007/view
+BKG-5008,OPP-1010,2026-03-25,76000.0,12,Platform,2026-05-01,2026-04-30,Booked,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5008/view
+BKG-5009,OPP-1009,2026-03-29,38000.0,12,Platform,2026-04-01,2027-03-31,Cancelled,https://canary-demo.my.salesforce.com/lightning/r/Contract/BKG-5009/view
