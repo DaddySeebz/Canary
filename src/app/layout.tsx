@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { canaryBrandAssets } from "@/lib/branding/logo-assets";
 import { isClerkConfigured } from "@/lib/env";
 
 import "./globals.css";
@@ -22,6 +23,34 @@ export const metadata: Metadata = {
   title: "Canary | Instrumental Early Warning for Data Operations",
   description:
     "High-precision auditing, live monitoring, and operational intelligence for revenue and finance data teams.",
+  manifest: canaryBrandAssets.icons.manifest,
+  icons: {
+    icon: [
+      { url: canaryBrandAssets.icons.favicon.src, sizes: "any" },
+      { url: canaryBrandAssets.icons.favicon16.src, type: "image/png", sizes: canaryBrandAssets.icons.favicon16.sizes },
+      { url: canaryBrandAssets.icons.favicon32.src, type: "image/png", sizes: canaryBrandAssets.icons.favicon32.sizes },
+      { url: canaryBrandAssets.icons.favicon48.src, type: "image/png", sizes: canaryBrandAssets.icons.favicon48.sizes },
+      { url: canaryBrandAssets.icons.favicon64.src, type: "image/png", sizes: canaryBrandAssets.icons.favicon64.sizes },
+      {
+        url: canaryBrandAssets.icons.androidChrome192.src,
+        type: "image/png",
+        sizes: canaryBrandAssets.icons.androidChrome192.sizes,
+      },
+      {
+        url: canaryBrandAssets.icons.androidChrome512.src,
+        type: "image/png",
+        sizes: canaryBrandAssets.icons.androidChrome512.sizes,
+      },
+    ],
+    apple: [
+      {
+        url: canaryBrandAssets.icons.appleTouchIcon.src,
+        type: "image/png",
+        sizes: canaryBrandAssets.icons.appleTouchIcon.sizes,
+      },
+    ],
+    other: [{ rel: "mask-icon", url: canaryBrandAssets.icons.safariPinnedTab.src, color: "#D7AD3C" }],
+  },
 };
 
 export default function RootLayout({

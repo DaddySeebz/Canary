@@ -93,7 +93,7 @@ export function LandingPage({
       <div className="mx-auto max-w-[1400px] space-y-6">
         <header className="glass-panel rounded-[0.75rem] border border-white/10 px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-6">
-            <CanaryLogo variant="inline" showTagline={false} />
+            <CanaryLogo variant="inline" surface="dark" showTagline={false} />
             <nav className="flex flex-wrap items-center gap-6 text-sm text-zinc-400">
               <a href="#monitoring" className="hover:text-white">
                 Monitoring
@@ -329,7 +329,7 @@ export function LandingPage({
         <footer className="glass-panel rounded-[0.9rem] border border-white/10 p-8">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr_0.9fr]">
             <div className="space-y-4">
-              <CanaryLogo variant="inline" showTagline={false} />
+              <CanaryLogo variant="inline" surface="dark" showTagline={false} />
               <p className="max-w-[38ch] text-sm leading-7 text-zinc-400">
                 Precision instrumentation for revenue and finance operations. Build trust in the number before it reaches the room that matters.
               </p>

@@ -58,7 +58,7 @@ export function AuthShell({
         <section className="canary-grid relative flex flex-col justify-between bg-[linear-gradient(180deg,#111114,#0b0b0d)] px-8 py-10 md:px-12 md:py-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(255,201,101,0.12),transparent_32%)]" />
           <div className="relative z-10">
-            <CanaryLogo variant="inline" showTagline={false} />
+            <CanaryLogo variant="inline" surface="dark" showTagline={false} />
           </div>
 
           <div className="relative z-10 max-w-[28rem] space-y-6">

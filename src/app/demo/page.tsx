@@ -83,7 +83,7 @@ export default async function DemoPage() {
       <div className="mx-auto max-w-[1400px] space-y-6">
         <header className="glass-panel rounded-[0.75rem] border border-white/10 px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-6">
-            <CanaryLogo variant="inline" showTagline={false} />
+            <CanaryLogo variant="inline" surface="dark" showTagline={false} />
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/" className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}>
                 Back Home
