@@ -15,6 +15,10 @@ Canary is a Next.js 16 app for CSV audit workspaces, rule-based monitoring, and 
    - `CANARY_PUBLIC_DEMO_ENABLED=true` to expose the public `/demo` workspace
 4. Install dependencies and run `npm run dev`.
 
+## Brand assets
+
+The Canary logo pack lives in `public/brand/canary/`, with browser icons at the public root. The usage guide is [docs/branding/canary-brand-assets.md](docs/branding/canary-brand-assets.md).
+
 ## Clerk setup
 
 Canary already uses Clerk with the App Router and custom auth pages:

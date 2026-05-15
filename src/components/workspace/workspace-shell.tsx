@@ -39,7 +39,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
       <aside className="border-r border-white/5 bg-[#0d0d0f] px-5 py-6 text-zinc-200">
         <div className="flex h-full flex-col">
           <div className="space-y-8">
-            <CanaryLogo variant="inline" showTagline={false} className="[&_div:first-child]:text-primary" />
+            <CanaryLogo variant="inline" surface="dark" showTagline={false} />
             <div className="rounded-[0.9rem] border border-white/8 bg-white/[0.04] p-4">
               <div className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">Workspace</div>
               <div className="mt-2 text-sm font-semibold text-white">System health: good</div>
