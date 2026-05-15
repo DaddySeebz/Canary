@@ -96,12 +96,12 @@ export function AuthShell({
     <main className="min-h-[100dvh] bg-[#0e0e10] text-[#f5f2eb]">
       <div className="grid min-h-[100dvh] grid-rows-[1fr_auto]">
         <div className="grid min-h-full lg:grid-cols-[1.05fr_1fr]">
-          <section className="relative flex flex-col gap-12 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
+          <section className="relative flex flex-col gap-10 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
             <Link href="/" className="inline-flex w-fit">
-              <CanaryLogo variant="inline" surface="dark" showTagline={false} className="[&_img]:h-[42px]" />
+              <CanaryLogo variant="inline" surface="dark" showTagline={false} className="[&_img]:h-[49px]" />
             </Link>
 
-            <div className="flex max-w-[640px] flex-1 flex-col justify-center">
+            <div className="flex max-w-[640px] flex-col">
               <h1 className="text-[64px] font-semibold leading-[0.98] tracking-[-0.03em] text-[#f5f2eb] md:text-[88px]">
                 Start Your First Audit in <span className="text-[#d4a94a]">15&nbsp;Minutes.</span>
               </h1>
