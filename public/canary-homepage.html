@@ -128,7 +128,7 @@ function CanaryNav({ cta = "Start your first audit", variant = "default" }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <a href="#" style={{ fontSize: 13, color: "var(--ink-dim)" }}>Log in</a>
-        <button style={{ background: "var(--amber)", color: "#18120a", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, letterSpacing: "-0.005em" }}>{cta}</button>
+        <a href="/signup" target="_top" style={{ background: "var(--amber)", color: "#18120a", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 13, fontWeight: 600, letterSpacing: "-0.005em" }}>{cta}</a>
       </div>
     </div>
   );
@@ -142,9 +142,9 @@ function CTAButton({ children, primary = true, size = "md" }) {
   const pad = size === "lg" ? "14px 22px" : size === "sm" ? "7px 13px" : "11px 18px";
   const fs = size === "lg" ? 14 : size === "sm" ? 12 : 13;
   return (
-    <button style={{ background: primary ? "var(--amber)" : "transparent", color: primary ? "#18120a" : "var(--ink)", border: primary ? "none" : "1px solid var(--line-strong)", borderRadius: 8, padding: pad, fontSize: fs, fontWeight: 600, letterSpacing: "-0.005em", display: "inline-flex", alignItems: "center", gap: 8 }}>
+    <a href="/signup" target="_top" style={{ background: primary ? "var(--amber)" : "transparent", color: primary ? "#18120a" : "var(--ink)", border: primary ? "none" : "1px solid var(--line-strong)", borderRadius: 8, padding: pad, fontSize: fs, fontWeight: 600, letterSpacing: "-0.005em", display: "inline-flex", alignItems: "center", gap: 8 }}>
       {children}
-    </button>
+    </a>
   );
 }
 
@@ -463,9 +463,9 @@ function CanaryFinal() {
             the board deck.
           </p>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <button style={{ background: "var(--amber)", color: "#18120a", border: "none", borderRadius: 10, padding: "18px 28px", fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em", display: "inline-flex", alignItems: "center", gap: 12 }}>
+            <a href="/signup" target="_top" style={{ background: "var(--amber)", color: "#18120a", border: "none", borderRadius: 10, padding: "18px 28px", fontSize: 16, fontWeight: 600, letterSpacing: "-0.01em", display: "inline-flex", alignItems: "center", gap: 12 }}>
               Start now — drop a CSV <FArrow size={14} />
-            </button>
+            </a>
           </div>
         </div>
         <HeroSignalPoster />
