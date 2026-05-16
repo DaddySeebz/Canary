@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { SignIn, SignUp } from "@clerk/nextjs";
 import { Star } from "lucide-react";
-
-import { CanaryLogo } from "@/components/branding/canary-logo";
 
 const clerkAppearance = {
   elements: {
@@ -98,7 +97,15 @@ export function AuthShell({
         <div className="grid min-h-full lg:grid-cols-[1.05fr_1fr]">
           <section className="relative flex flex-col gap-10 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
             <Link href="/" className="inline-flex w-fit">
-              <CanaryLogo variant="inline" surface="dark" showTagline={false} className="[&_img]:h-[49px]" />
+              <Image
+                src="/brand/canary/svg/canary-logo-horizontal-dark.svg"
+                alt="Canary"
+                width={1745}
+                height={860}
+                className="h-[49px] w-auto"
+                priority
+                unoptimized
+              />
             </Link>
 
             <div className="flex max-w-[640px] flex-col">
@@ -180,7 +187,14 @@ export function AuthShell({
 
         <footer className="flex flex-col items-center justify-between gap-5 border-t border-white/7 px-8 py-[26px] font-mono text-[11px] uppercase tracking-[0.1em] text-[#6d6c68] md:flex-row md:px-20">
           <Link href="/" className="inline-flex">
-            <CanaryLogo variant="inline" surface="dark" showTagline={false} className="[&_img]:h-9" />
+            <Image
+              src="/brand/canary/svg/canary-logo-horizontal-dark.svg"
+              alt="Canary"
+              width={1745}
+              height={860}
+              className="h-9 w-auto"
+              unoptimized
+            />
           </Link>
           <div className="flex flex-wrap justify-center gap-8 md:gap-10">
             <Link href="/security" className="hover:text-[#a8a7a2]">
