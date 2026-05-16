@@ -110,6 +110,65 @@ function Testimonial() {
   );
 }
 
+function ActivityDigest() {
+  const rows = [
+    {
+      status: "bad",
+      label: "Discount cap breached on 4 enterprise deals",
+      sub: "HUBSPOT-DEALS.CSV · RULE discount_cap_enterprise",
+      when: "02:14",
+    },
+    {
+      status: "warn",
+      label: "Row-count delta exceeded threshold",
+      sub: "NETSUITE-RECON-Q2.CSV · -1,204 ROWS",
+      when: "04:08",
+    },
+    {
+      status: "good",
+      label: "Nightly reconciliation passed clean",
+      sub: "BILLING-INVOICES.CSV · 47 RULES · 0 FLAGS",
+      when: "05:30",
+    },
+  ];
+
+  return (
+    <figure className="max-w-[560px] rounded border border-white/7 border-l-2 border-l-[#d4a94a] bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] px-[26px] py-[22px]">
+      <div className="mb-3.5 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
+        <span className="inline-flex items-center gap-2 text-[#d4a94a]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#d4a94a] shadow-[0_0_0_6px_rgba(212,169,74,0.12)]" />
+          OVERNIGHT · YOUR WORKSPACE
+        </span>
+        <span>SINCE 18:42</span>
+      </div>
+      <div>
+        {rows.map((row, index) => (
+          <div
+            key={row.label}
+            className={`grid grid-cols-[14px_1fr_auto] items-center gap-3.5 border-white/7 py-3 ${
+              index === 0 ? "pt-1" : "border-t"
+            }`}
+          >
+            <span
+              className={`ml-[3px] h-2 w-2 rounded-full ${
+                row.status === "bad" ? "bg-[#ff716a]" : row.status === "good" ? "bg-[#4ade80]" : "bg-[#d4a94a]"
+              }`}
+              aria-hidden="true"
+            />
+            <div>
+              <div className="text-sm font-medium tracking-[-0.005em] text-[#f5f2eb]">{row.label}</div>
+              <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-[#6d6c68]">
+                {row.sub}
+              </div>
+            </div>
+            <span className="font-mono text-[10px] tracking-[0.08em] text-[#6d6c68]">{row.when}</span>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
 export function AuthShell({
   mode,
   authEnabled = true,
@@ -125,32 +184,41 @@ export function AuthShell({
         <div className="grid min-h-full lg:grid-cols-[1.05fr_1fr]">
           <section className="relative flex flex-col gap-10 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
             <Link href="/" className="inline-flex w-fit">
-              <HomepageLogoLockup />
+              <HomepageLogoLockup size={isSignup ? 49 : 42} />
             </Link>
 
             <div className="flex max-w-[640px] flex-col">
               <h1 className="text-[64px] font-semibold leading-[0.98] tracking-[-0.03em] text-[#f5f2eb] md:text-[88px]">
-                Start Your First Audit in <span className="text-[#d4a94a]">15&nbsp;Minutes.</span>
+                {isSignup ? (
+                  <>
+                    Start Your First Audit in <span className="text-[#d4a94a]">15&nbsp;Minutes.</span>
+                  </>
+                ) : (
+                  <>
+                    Welcome back to <span className="text-[#d4a94a]">Canary.</span>
+                  </>
+                )}
               </h1>
               <p className="mt-8 max-w-[44ch] text-[19px] leading-[1.55] tracking-[-0.005em] text-[#a8a7a2]">
-                Stop finding out about data issues in board meetings. Empower your operations with
-                instrumental precision.
+                {isSignup
+                  ? "Stop finding out about data issues in board meetings. Empower your operations with instrumental precision."
+                  : "Your audits never sleep. Six new flags surfaced overnight across your monitored files - log in to triage, dismiss, or escalate before the morning standup."}
               </p>
             </div>
 
-            <Testimonial />
+            {isSignup ? <Testimonial /> : <ActivityDigest />}
           </section>
 
           <section className="flex items-center justify-center border-t border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.012),transparent_40%),#0e0e10] px-8 py-12 md:px-16 lg:border-l lg:border-t-0 lg:px-20">
             <div className="w-full max-w-[460px]">
               <div>
                 <h2 className="font-[var(--font-space-grotesk)] text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-[#f5f2eb]">
-                  {isSignup ? "Create your account" : "Welcome back"}
+                  {isSignup ? "Create your account" : "Log in to Canary"}
                 </h2>
                 <p className="mt-3 text-sm leading-[1.55] text-[#a8a7a2]">
                   {isSignup
                     ? "Join the network of high-precision data ops."
-                    : "Sign in to continue monitoring the health of your audit workspace."}
+                    : "Use the email you instrumented with. SSO and security keys are honored automatically."}
                 </p>
               </div>
 
@@ -183,24 +251,33 @@ export function AuthShell({
               </div>
 
               <div className="mt-[22px] text-center text-sm text-[#a8a7a2]">
-                {isSignup ? "Already have an account?" : "Need a Canary account?"}
+                {isSignup ? "Already have an account?" : "New to Canary?"}
                 <Link href={isSignup ? "/login" : "/signup"} className="ml-1.5 font-semibold text-[#d4a94a]">
-                  {isSignup ? "Log In" : "Create one"}
+                  {isSignup ? "Log In" : "Create an account"}
                 </Link>
               </div>
 
-              <div className="mt-[26px] text-center font-mono text-[9.5px] uppercase leading-[1.7] tracking-[0.1em] text-[#6d6c68]">
-                BY CREATING AN ACCOUNT, YOU AGREE TO OUR
-                <br />
-                <Link href="/terms" className="text-[#a8a7a2] underline underline-offset-2">
-                  TERMS OF SERVICE
-                </Link>{" "}
-                AND{" "}
-                <Link href="/privacy" className="text-[#a8a7a2] underline underline-offset-2">
-                  PRIVACY POLICY
-                </Link>
-                .
-              </div>
+              {isSignup ? (
+                <div className="mt-[26px] text-center font-mono text-[9.5px] uppercase leading-[1.7] tracking-[0.1em] text-[#6d6c68]">
+                  BY CREATING AN ACCOUNT, YOU AGREE TO OUR
+                  <br />
+                  <Link href="/terms" className="text-[#a8a7a2] underline underline-offset-2">
+                    TERMS OF SERVICE
+                  </Link>{" "}
+                  AND{" "}
+                  <Link href="/privacy" className="text-[#a8a7a2] underline underline-offset-2">
+                    PRIVACY POLICY
+                  </Link>
+                  .
+                </div>
+              ) : (
+                <div className="mt-7 flex items-center justify-between border-t border-white/7 pt-[22px] font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
+                  <span>ENTERPRISE SSO</span>
+                  <Link href="/login" className="text-[#d4a94a]">
+                    USE A SECURITY KEY →
+                  </Link>
+                </div>
+              )}
             </div>
           </section>
         </div>
