@@ -51,6 +51,34 @@ const clerkAppearance = {
   },
 } as const;
 
+function HomepageLogoLockup({ size = 49 }: { size?: number }) {
+  return (
+    <span className="inline-flex items-center" style={{ gap: size * 0.3 }}>
+      <Image
+        src="/brand/canary/png/canary-icon-gold-transparent.png"
+        alt=""
+        aria-hidden="true"
+        width={755}
+        height={860}
+        className="block shrink-0 object-contain"
+        style={{ width: size, height: size }}
+        priority={size >= 49}
+        unoptimized
+      />
+      <Image
+        src="/brand/canary/png/canary-wordmark-white-transparent.png"
+        alt="Canary"
+        width={920}
+        height={145}
+        className="block w-auto object-contain"
+        style={{ height: size * 0.44 }}
+        priority={size >= 49}
+        unoptimized
+      />
+    </span>
+  );
+}
+
 function Testimonial() {
   return (
     <figure className="max-w-[560px] rounded border border-white/7 border-l-2 border-l-[#d4a94a] bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] px-7 py-6">
@@ -97,15 +125,7 @@ export function AuthShell({
         <div className="grid min-h-full lg:grid-cols-[1.05fr_1fr]">
           <section className="relative flex flex-col gap-10 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
             <Link href="/" className="inline-flex w-fit">
-              <Image
-                src="/brand/canary/svg/canary-logo-horizontal-dark.svg"
-                alt="Canary"
-                width={1745}
-                height={860}
-                className="h-[49px] w-auto"
-                priority
-                unoptimized
-              />
+              <HomepageLogoLockup />
             </Link>
 
             <div className="flex max-w-[640px] flex-col">
@@ -187,14 +207,7 @@ export function AuthShell({
 
         <footer className="flex flex-col items-center justify-between gap-5 border-t border-white/7 px-8 py-[26px] font-mono text-[11px] uppercase tracking-[0.1em] text-[#6d6c68] md:flex-row md:px-20">
           <Link href="/" className="inline-flex">
-            <Image
-              src="/brand/canary/svg/canary-logo-horizontal-dark.svg"
-              alt="Canary"
-              width={1745}
-              height={860}
-              className="h-9 w-auto"
-              unoptimized
-            />
+            <HomepageLogoLockup size={36} />
           </Link>
           <div className="flex flex-wrap justify-center gap-8 md:gap-10">
             <Link href="/security" className="hover:text-[#a8a7a2]">
