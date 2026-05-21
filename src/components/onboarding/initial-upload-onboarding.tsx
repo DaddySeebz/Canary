@@ -12,6 +12,13 @@ type InitialUploadResponse = {
   error?: string;
 };
 
+const onboardingScreens = {
+  upload: "/onboarding/01-initial-upload.html",
+  parsing: "/onboarding/02-parsing.html",
+} as const;
+
+type OnboardingScreen = keyof typeof onboardingScreens;
+
 function isCsvFile(file: File) {
   return file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
 }
@@ -20,6 +27,7 @@ export function InitialUploadOnboarding() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const [screen, setScreen] = useState<OnboardingScreen>("upload");
   const [isUploading, setIsUploading] = useState(false);
 
   async function upload(file: File) {
@@ -29,6 +37,7 @@ export function InitialUploadOnboarding() {
     }
 
     setIsUploading(true);
+    setScreen("parsing");
 
     try {
       const formData = new FormData();
@@ -49,6 +58,7 @@ export function InitialUploadOnboarding() {
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Initial upload failed.");
+      setScreen("upload");
     } finally {
       setIsUploading(false);
       if (inputRef.current) {
@@ -100,7 +110,7 @@ export function InitialUploadOnboarding() {
       <iframe
         ref={iframeRef}
         title="Canary initial upload onboarding"
-        src="/onboarding/01-initial-upload.html"
+        src={onboardingScreens[screen]}
         className="block h-[100dvh] w-full border-0 bg-[#f1ede4]"
         onLoad={wireDesignFrame}
       />
