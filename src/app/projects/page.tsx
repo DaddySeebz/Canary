@@ -1,5 +1,6 @@
 import { Activity, BrainCircuit, FolderKanban, ShieldCheck } from "lucide-react";
 
+import { InitialUploadOnboarding } from "@/components/onboarding/initial-upload-onboarding";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { ProjectCard } from "@/components/projects/project-card";
 import { requireUserId } from "@/lib/auth";
@@ -19,6 +20,10 @@ export default async function ProjectsIndexPage() {
     },
     { files: 0, rules: 0, violations: 0 },
   );
+
+  if (projects.length === 0) {
+    return <InitialUploadOnboarding />;
+  }
 
   return (
     <div className="space-y-6">
@@ -49,23 +54,11 @@ export default async function ProjectsIndexPage() {
         </div>
       </section>
 
-      {projects.length === 0 ? (
-        <section className="workspace-panel rounded-[0.9rem] border border-dashed border-[color:var(--workspace-border)] px-6 py-10">
-          <div className="max-w-[36rem] space-y-3">
-            <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700">No workspaces yet</div>
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-950">Create your first audit workspace.</h2>
-            <p className="text-sm leading-7 text-slate-500">
-              Start with a single CSV, define what should always be true, and let Canary turn that into continuous monitoring logic.
-            </p>
-          </div>
-        </section>
-      ) : (
-        <section className="grid gap-5 xl:grid-cols-2">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </section>
-      )}
+      <section className="grid gap-5 xl:grid-cols-2">
+        {projects.map((project) => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
+      </section>
     </div>
   );
 }
