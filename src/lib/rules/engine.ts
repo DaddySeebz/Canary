@@ -34,6 +34,52 @@ type PendingFindingInsert = {
   severity: RuleSeverity;
 };
 
+type AuditProgressRule = {
+  id: string;
+  description_plain: string;
+  rule_type: RuleType;
+  severity: RuleSeverity;
+};
+
+export type AuditProgressEvent =
+  | {
+      type: "started";
+      run_id: string;
+      total_rows_checked: number;
+      total_rules: number;
+      rules: AuditProgressRule[];
+    }
+  | {
+      type: "rule_started";
+      run_id: string;
+      rule: AuditProgressRule;
+      rule_index: number;
+      total_rules: number;
+    }
+  | {
+      type: "rule_completed";
+      run_id: string;
+      rule: AuditProgressRule;
+      rule_index: number;
+      total_rules: number;
+      finding_count: number;
+    }
+  | {
+      type: "completed";
+      run_id: string;
+      total_findings: number;
+      total_rows_checked: number;
+      duration_ms: number;
+      health_score: number;
+    }
+  | {
+      type: "failed";
+      run_id: string;
+      error: string;
+    };
+
+type AuditProgressReporter = (event: AuditProgressEvent) => void | Promise<void>;
+
 const evaluators = {
   required_field: requiredFieldEvaluator,
   date_comparison: dateComparisonEvaluator,
@@ -79,20 +125,32 @@ function buildResolution(rule: AuditRuleRecord, findings: EvalFinding[]) {
   };
 }
 
-export async function runAudit(projectId: string) {
+function toProgressRule(rule: AuditRuleRecord): AuditProgressRule {
+  return {
+    id: rule.id,
+    description_plain: rule.description_plain,
+    rule_type: rule.rule_type,
+    severity: rule.severity,
+  };
+}
+
+export async function runAudit(
+  projectId: string,
+  options: { onProgress?: AuditProgressReporter } = {},
+) {
   const startedAt = Date.now();
   const run = await createAuditRun(projectId);
-  const [files, rules] = await Promise.all([
-    listProjectFiles(projectId),
-    listActiveProjectRules(projectId),
-  ]);
-
-  if (files.length === 0 || rules.length === 0) {
-    await failAuditRun(run.id);
-    throw new Error("Audit requires at least one CSV file and one active rule.");
-  }
 
   try {
+    const [files, rules] = await Promise.all([
+      listProjectFiles(projectId),
+      listActiveProjectRules(projectId),
+    ]);
+
+    if (files.length === 0 || rules.length === 0) {
+      throw new Error("Audit requires at least one CSV file and one active rule.");
+    }
+
     const contexts = new Map<string, EvalContext>();
 
     for (const file of files) {
@@ -112,7 +170,25 @@ export async function runAudit(projectId: string) {
       totalRowsChecked += context.rows.length;
     }
 
-    for (const rule of rules) {
+    await options.onProgress?.({
+      type: "started",
+      run_id: run.id,
+      total_rows_checked: totalRowsChecked,
+      total_rules: rules.length,
+      rules: rules.map(toProgressRule),
+    });
+
+    for (const [index, rule] of rules.entries()) {
+      const progressRule = toProgressRule(rule);
+
+      await options.onProgress?.({
+        type: "rule_started",
+        run_id: run.id,
+        rule: progressRule,
+        rule_index: index + 1,
+        total_rules: rules.length,
+      });
+
       const config = validateRuleConfig(rule.rule_type, rule.rule_config);
       const evaluator = evaluators[rule.rule_type];
       const findings = evaluator(config, contexts, rule.severity);
@@ -126,6 +202,15 @@ export async function runAudit(projectId: string) {
       );
 
       resolutions.push(buildResolution(rule, findings));
+
+      await options.onProgress?.({
+        type: "rule_completed",
+        run_id: run.id,
+        rule: progressRule,
+        rule_index: index + 1,
+        total_rules: rules.length,
+        finding_count: findings.length,
+      });
     }
 
     await insertFindings(run.id, findingsToInsert);
@@ -138,11 +223,13 @@ export async function runAudit(projectId: string) {
       Math.round(100 * (1 - totalViolations / denominator)),
     );
 
+    const durationMs = Date.now() - startedAt;
+
     await completeAuditRun({
       runId: run.id,
       totalViolations,
       totalRowsChecked,
-      durationMs: Date.now() - startedAt,
+      durationMs,
       healthScore,
     });
 
@@ -158,15 +245,27 @@ export async function runAudit(projectId: string) {
       }),
     );
 
-    return {
+    const result = {
       run_id: run.id,
       total_findings: totalViolations,
       total_rows_checked: totalRowsChecked,
-      duration_ms: Date.now() - startedAt,
+      duration_ms: durationMs,
       health_score: healthScore,
     };
+
+    await options.onProgress?.({
+      type: "completed",
+      ...result,
+    });
+
+    return result;
   } catch (error) {
     await failAuditRun(run.id);
+    await options.onProgress?.({
+      type: "failed",
+      run_id: run.id,
+      error: error instanceof Error ? error.message : "Audit failed",
+    });
     throw error;
   }
 }
