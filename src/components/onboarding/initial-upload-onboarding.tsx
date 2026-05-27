@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { DefaultChatTransport } from "ai";
 import { useChat } from "@ai-sdk/react";
-import { Bot, Check, Loader2, Play, Send } from "lucide-react";
+import { Bot, Loader2, Play, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { toast } from "@/components/ui/sonner";
@@ -131,6 +131,10 @@ type AuditFrameState = {
   }>;
   error: string | null;
 };
+
+const MIN_AUDIT_DISPLAY_MS = 18_000;
+const MIN_RULE_RUNNING_MS = 1_500;
+const MIN_RULE_COMPLETED_MS = 1_000;
 
 const onboardingScreens = {
   upload: "/onboarding/01-initial-upload.html",
@@ -314,6 +318,20 @@ function formatElapsed(ms: number) {
 
 function formatRuleLabel(index: number) {
   return `R-${String(index + 1).padStart(2, "0")}`;
+}
+
+function wait(ms: number) {
+  if (ms <= 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function createAbortError() {
+  return new DOMException("Audit presentation cancelled.", "AbortError");
 }
 
 function createInitialAuditFrameState(): AuditFrameState {
@@ -588,7 +606,7 @@ function RuleDefinitionOnboarding({
   onToggleDraft,
   onConversationRulesChange,
   onToggleConversationRule,
-  onFinalize,
+  onRunAudit,
 }: {
   context: ProjectContext;
   draftRules: DraftRule[];
@@ -598,7 +616,7 @@ function RuleDefinitionOnboarding({
   onToggleDraft: (ruleId: string) => void;
   onConversationRulesChange: (rules: ConversationRule[]) => void;
   onToggleConversationRule: (rule: ConversationRule) => Promise<void>;
-  onFinalize: (input: { runAudit: boolean }) => void;
+  onRunAudit: () => void;
 }) {
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -826,17 +844,8 @@ function RuleDefinitionOnboarding({
           <div className="mt-7 space-y-3">
             <button
               type="button"
-              disabled={isFinalizing}
-              onClick={() => onFinalize({ runAudit: false })}
-              className="flex w-full items-center justify-center gap-2 rounded-[8px] border border-[#d8d2c2] px-4 py-3 text-sm font-semibold text-[#18120a] hover:bg-[#f5f2eb] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Check className="h-4 w-4" />
-              Review & edit all rules
-            </button>
-            <button
-              type="button"
               disabled={isFinalizing || enabledCount === 0}
-              onClick={() => onFinalize({ runAudit: true })}
+              onClick={onRunAudit}
               className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#18120a] px-4 py-3 text-sm font-semibold text-[#f5f2eb] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isFinalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -856,6 +865,9 @@ export function InitialUploadOnboarding() {
   const createdRuleKeysRef = useRef<Set<string>>(new Set());
   const auditAbortRef = useRef<AbortController | null>(null);
   const auditFrameStateRef = useRef<AuditFrameState>(createInitialAuditFrameState());
+  const auditPresentationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const auditPresentationStartedAtRef = useRef<number | null>(null);
+  const isAuditPresentationCancelledRef = useRef(false);
   const isFinalizingRef = useRef(false);
   const [screen, setScreen] = useState<OnboardingScreen>("upload");
   const [isUploading, setIsUploading] = useState(false);
@@ -1007,6 +1019,30 @@ export function InitialUploadOnboarding() {
 
   function resetAuditFrameState() {
     auditFrameStateRef.current = createInitialAuditFrameState();
+    auditPresentationStartedAtRef.current = Date.now();
+    auditPresentationQueueRef.current = Promise.resolve();
+    isAuditPresentationCancelledRef.current = false;
+  }
+
+  async function waitForPresentation(ms: number) {
+    const target = Date.now() + Math.max(0, ms);
+
+    while (Date.now() < target) {
+      await wait(Math.min(100, target - Date.now()));
+
+      if (isAuditPresentationCancelledRef.current) {
+        throw createAbortError();
+      }
+    }
+
+    if (isAuditPresentationCancelledRef.current) {
+      throw createAbortError();
+    }
+  }
+
+  async function waitForMinimumAuditDisplay() {
+    const startedAt = auditPresentationStartedAtRef.current ?? Date.now();
+    await waitForPresentation(MIN_AUDIT_DISPLAY_MS - (Date.now() - startedAt));
   }
 
   function updateAuditFrameState(event: AuditProgressEvent) {
@@ -1069,13 +1105,47 @@ export function InitialUploadOnboarding() {
     state.error = event.error;
   }
 
-  function handleAuditProgressEvent(event: AuditProgressEvent) {
+  function renderAuditProgressEvent(event: AuditProgressEvent) {
     updateAuditFrameState(event);
 
     const document = iframeRef.current?.contentDocument;
     if (document) {
       syncAuditRunningFrame(document);
     }
+  }
+
+  function queueAuditProgressEvent(event: AuditProgressEvent) {
+    if (event.type === "failed") {
+      isAuditPresentationCancelledRef.current = true;
+      renderAuditProgressEvent(event);
+      return Promise.resolve();
+    }
+
+    auditPresentationQueueRef.current = auditPresentationQueueRef.current
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        throw error;
+      })
+      .then(async () => {
+        if (isAuditPresentationCancelledRef.current) {
+          throw createAbortError();
+        }
+
+        renderAuditProgressEvent(event);
+
+        if (event.type === "rule_started") {
+          await waitForPresentation(MIN_RULE_RUNNING_MS);
+        }
+
+        if (event.type === "rule_completed") {
+          await waitForPresentation(MIN_RULE_COMPLETED_MS);
+        }
+      });
+
+    return auditPresentationQueueRef.current;
   }
 
   function setLastSpanText(element: Element | null, text: string) {
@@ -1315,6 +1385,7 @@ export function InitialUploadOnboarding() {
       cancelButton.dataset.canaryWired = "true";
       cancelButton.addEventListener("click", (event) => {
         event.preventDefault();
+        isAuditPresentationCancelledRef.current = true;
         auditAbortRef.current?.abort();
 
         if (projectContext) {
@@ -1359,7 +1430,7 @@ export function InitialUploadOnboarding() {
         }
 
         const event = JSON.parse(line) as AuditProgressEvent;
-        handleAuditProgressEvent(event);
+        void queueAuditProgressEvent(event);
 
         if (event.type === "failed") {
           throw new Error(event.error);
@@ -1375,16 +1446,19 @@ export function InitialUploadOnboarding() {
       }
     }
 
+    await auditPresentationQueueRef.current;
+
     if (!completed) {
       throw new Error("Audit stream ended before completion.");
     }
 
+    await waitForMinimumAuditDisplay();
     toast.success("Audit complete.");
     router.push(`/projects/${projectId}/monitoring`);
     router.refresh();
   }
 
-  async function finalizeRules({ runAudit }: { runAudit: boolean }) {
+  async function runAuditFromDefinedRules() {
     if (!projectContext || isFinalizingRef.current) {
       return;
     }
@@ -1395,28 +1469,15 @@ export function InitialUploadOnboarding() {
     try {
       await createSelectedDraftRules();
 
-      if (runAudit) {
-        resetAuditFrameState();
-        setScreen("auditRunning");
-        await runAuditWithProgress(projectContext.projectId);
-        return;
-      } else {
-        toast.success("Rules created.");
-      }
-
-      router.push(`/projects/${projectContext.projectId}/audits`);
-      router.refresh();
+      resetAuditFrameState();
+      setScreen("auditRunning");
+      await runAuditWithProgress(projectContext.projectId);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
       toast.error(error instanceof Error ? error.message : "Could not create rules.");
-
-      if (runAudit) {
-        router.push(`/projects/${projectContext.projectId}/audits`);
-        router.refresh();
-      }
     } finally {
       isFinalizingRef.current = false;
       setIsFinalizing(false);
@@ -1461,7 +1522,7 @@ export function InitialUploadOnboarding() {
         onToggleDraft={toggleDraftRule}
         onConversationRulesChange={setConversationRules}
         onToggleConversationRule={toggleConversationRule}
-        onFinalize={(input) => void finalizeRules(input)}
+        onRunAudit={() => void runAuditFromDefinedRules()}
       />
     );
   }
