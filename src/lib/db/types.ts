@@ -16,6 +16,8 @@ export interface ProjectSummary extends ProjectRecord {
   latest_run_at: string | null;
   latest_run_health_score: number | null;
   latest_run_violations: number | null;
+  latest_run_critical_count: number;
+  latest_run_warning_count: number;
 }
 
 export interface FileRecord {

@@ -5,12 +5,19 @@ import type { ProjectRecord, ProjectSummary } from "@/lib/db/types";
 
 type RawProjectSummary = Omit<
   ProjectSummary,
-  "file_count" | "rule_count" | "latest_run_health_score" | "latest_run_violations"
+  | "file_count"
+  | "rule_count"
+  | "latest_run_health_score"
+  | "latest_run_violations"
+  | "latest_run_critical_count"
+  | "latest_run_warning_count"
 > & {
   file_count: number | string;
   rule_count: number | string;
   latest_run_health_score: number | string | null;
   latest_run_violations: number | string | null;
+  latest_run_critical_count: number | string;
+  latest_run_warning_count: number | string;
 };
 
 const projectSummarySelect = `
@@ -50,7 +57,31 @@ const projectSummarySelect = `
       WHERE ar.project_id = p.id
       ORDER BY ar.ran_at DESC
       LIMIT 1
-    ) AS latest_run_violations
+    ) AS latest_run_violations,
+    (
+      SELECT COUNT(*)::int
+      FROM findings f
+      WHERE f.run_id = (
+        SELECT ar.id
+        FROM audit_runs ar
+        WHERE ar.project_id = p.id
+        ORDER BY ar.ran_at DESC
+        LIMIT 1
+      )
+      AND f.severity = 'critical'
+    ) AS latest_run_critical_count,
+    (
+      SELECT COUNT(*)::int
+      FROM findings f
+      WHERE f.run_id = (
+        SELECT ar.id
+        FROM audit_runs ar
+        WHERE ar.project_id = p.id
+        ORDER BY ar.ran_at DESC
+        LIMIT 1
+      )
+      AND f.severity = 'warning'
+    ) AS latest_run_warning_count
   FROM projects p
 `;
 
@@ -69,6 +100,8 @@ function mapProjectSummaryRow(row: RawProjectSummary): ProjectSummary {
     rule_count: Number(row.rule_count),
     latest_run_health_score: toNullableNumber(row.latest_run_health_score),
     latest_run_violations: toNullableNumber(row.latest_run_violations),
+    latest_run_critical_count: Number(row.latest_run_critical_count),
+    latest_run_warning_count: Number(row.latest_run_warning_count),
   };
 }
 

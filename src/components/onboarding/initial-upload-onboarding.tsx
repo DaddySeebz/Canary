@@ -1,12 +1,32 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { DefaultChatTransport } from "ai";
 import { useChat } from "@ai-sdk/react";
-import { Bot, Loader2, Play, Send } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Bot,
+  CalendarClock,
+  CheckCircle2,
+  Loader2,
+  Play,
+  RefreshCw,
+  Send,
+  ShieldAlert,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { toast } from "@/components/ui/sonner";
+import {
+  buildResultIssues,
+  countResultSeverities,
+  type AuditResultsBundle,
+  type AuditResultsFinding,
+  type AuditResultsSummaryItem,
+  type ResultIssue,
+  type ResultSeverity,
+} from "@/components/onboarding/audit-results-utils";
 
 type RuleType =
   | "required_field"
@@ -143,7 +163,7 @@ const onboardingScreens = {
   auditRunning: "/onboarding/04-audit-running.html",
 } as const;
 
-type OnboardingScreen = keyof typeof onboardingScreens;
+type OnboardingScreen = keyof typeof onboardingScreens | "results";
 
 function isCsvFile(file: File) {
   return file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
@@ -858,6 +878,328 @@ function RuleDefinitionOnboarding({
   );
 }
 
+function formatClockDuration(ms: number | null | undefined) {
+  const totalSeconds = Math.max(0, Math.floor((ms ?? 0) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function formatRunDate(value: string | undefined) {
+  if (!value) {
+    return "pending";
+  }
+
+  return new Date(value)
+    .toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+    .toUpperCase();
+}
+
+function formatRuleType(ruleType: string) {
+  return ruleType.replace(/_/g, " ");
+}
+
+function formatRunLabel(runId: string | undefined) {
+  return runId ? `#${runId.slice(0, 8).toUpperCase()}` : "#PENDING";
+}
+
+function severityStyles(severity: ResultSeverity) {
+  if (severity === "critical") {
+    return {
+      label: "Critical",
+      icon: ShieldAlert,
+      badge: "border-[#c44d3a] bg-[#f4dcd3] text-[#8f2d1f]",
+      rail: "border-l-[#c44d3a]",
+      text: "text-[#8f2d1f]",
+    };
+  }
+
+  if (severity === "warning") {
+    return {
+      label: "Warning",
+      icon: AlertTriangle,
+      badge: "border-[#d4a94a] bg-[#fbefd0] text-[#8a6216]",
+      rail: "border-l-[#d4a94a]",
+      text: "text-[#8a6216]",
+    };
+  }
+
+  return {
+    label: "Info",
+    icon: CheckCircle2,
+    badge: "border-[#90b99d] bg-[#dcefdf] text-[#2c6f47]",
+    rail: "border-l-[#90b99d]",
+    text: "text-[#2c6f47]",
+  };
+}
+
+function MetricTile({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: ReactNode;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] p-5">
+      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8a847b]">{label}</div>
+      <div className="mt-3 text-3xl font-semibold text-[#18120a]">{value}</div>
+      <div className="mt-2 text-xs text-[#8a847b]">{detail}</div>
+    </div>
+  );
+}
+
+function FindingDetail({ finding }: { finding: AuditResultsFinding }) {
+  const details = [
+    finding.column_name ? `Column: ${finding.column_name}` : null,
+    finding.value ? `Value: ${finding.value}` : null,
+    finding.expected ? `Expected: ${finding.expected}` : null,
+  ].filter(Boolean);
+
+  return (
+    <div className="rounded-[6px] border border-[#e6e0d2] bg-[#f5f2eb] p-3 font-mono text-xs leading-6 text-[#5a544c]">
+      <div>Row {finding.row_number}</div>
+      {details.length > 0 ? <div>{details.join(" // ")}</div> : null}
+      <div className="whitespace-normal font-sans text-sm text-[#2b2620]">{finding.message}</div>
+    </div>
+  );
+}
+
+function ResultIssueCard({ issue }: { issue: ResultIssue }) {
+  const styles = severityStyles(issue.severity);
+  const SeverityIcon = styles.icon;
+
+  return (
+    <article className={`rounded-[8px] border border-[#e6e0d2] border-l-4 ${styles.rail} bg-[#fbf9f3] p-5`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${styles.badge}`}>
+              <SeverityIcon className="h-3.5 w-3.5" />
+              {styles.label}
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8a847b]">
+              {formatRuleType(issue.ruleType)}
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[#18120a]">{issue.title}</h3>
+            <p className="mt-1 text-sm leading-6 text-[#5a544c]">
+              {issue.resolutionSummary || `${issue.findingCount} rows need attention for this rule.`}
+            </p>
+          </div>
+        </div>
+        <div className="rounded-[8px] bg-[#18120a] px-4 py-3 text-center font-mono text-[#f5f2eb]">
+          <div className="text-2xl font-semibold">{issue.findingCount}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em]">rows</div>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        <div className="rounded-[6px] border border-[#d8d2c2] bg-[#fffaf0] p-3 text-sm leading-6 text-[#5a544c]">
+          <span className="font-semibold text-[#18120a]">Recommended fix:</span>{" "}
+          {issue.resolutionSuggestion || "Review the flagged rows and correct the source data before the next run."}
+        </div>
+        {issue.sampleFinding ? <FindingDetail finding={issue.sampleFinding} /> : null}
+      </div>
+    </article>
+  );
+}
+
+function RuleCountList({ summary }: { summary: AuditResultsSummaryItem[] }) {
+  return (
+    <div className="rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="font-mono text-xs uppercase tracking-[0.24em] text-[#8a847b]">By Rule</div>
+        <div className="font-mono text-xs text-[#a27820]">{summary.length} rules</div>
+      </div>
+      <div className="space-y-3">
+        {summary.map((item, index) => (
+          <div key={item.rule_id} className="flex items-center justify-between gap-3 border-t border-[#e6e0d2] pt-3 first:border-t-0 first:pt-0">
+            <div className="min-w-0">
+              <div className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#8a847b]">
+                {formatRuleLabel(index)}
+              </div>
+              <div className="truncate text-sm font-medium text-[#18120a]">{item.description_plain}</div>
+            </div>
+            <div className="font-mono text-lg font-semibold text-[#18120a]">{item.finding_count}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OnboardingResultsScreen({
+  projectId,
+  file,
+  bundle,
+  loading,
+  error,
+  onRetry,
+}: {
+  projectId: string;
+  file: UploadedOnboardingFile;
+  bundle: AuditResultsBundle | null;
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const router = useRouter();
+  const severityCounts = countResultSeverities(bundle?.summary ?? []);
+  const resultIssues = bundle ? buildResultIssues(bundle).slice(0, 6) : [];
+  const rulesWithFindings = bundle?.summary.filter((item) => item.finding_count > 0).length ?? 0;
+  const run = bundle?.run;
+  const rowsScanned = run?.total_rows_checked ?? file.row_count;
+  const issueTotal = run?.total_violations ?? 0;
+  const healthScore = run?.health_score ?? 100;
+  const duration = formatClockDuration(run?.duration_ms);
+
+  function goToDashboard() {
+    router.push(`/projects/${projectId}/monitoring`);
+    router.refresh();
+  }
+
+  function scheduleRecurring() {
+    router.push(`/projects/${projectId}/audits`);
+    router.refresh();
+  }
+
+  return (
+    <main className="min-h-[100dvh] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
+      <div className="mx-auto min-h-[calc(100dvh-40px)] max-w-[1600px] rounded-[8px] border border-[#e6e0d2] bg-[#f5f2eb] p-6 lg:p-8">
+        <header className="flex flex-wrap items-start justify-between gap-5 border-b border-[#d8d2c2] pb-6">
+          <div className="space-y-4">
+            <div className="font-mono text-sm uppercase tracking-[0.35em] text-[#8a847b]">Step 05 // Results</div>
+            <div>
+              <h1 className="text-5xl font-semibold tracking-normal text-[#18120a] md:text-6xl">Audit Results</h1>
+              <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#8a847b]">
+                <span>{formatRunLabel(run?.id)}</span>
+                <span>Run date: {formatRunDate(run?.ran_at)}</span>
+                <span>Duration: {duration}</span>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-[8px] border border-[#90b99d] bg-[#dcefdf] px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.22em] text-[#2c6f47]">
+            {loading ? "Loading" : error ? "Needs review" : "Completed"}
+          </div>
+        </header>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricTile label="Dataset" value={<span className="text-2xl">{file.original_name}</span>} detail="Source file audited" />
+          <MetricTile label="Total rows scanned" value={formatFullNumber(rowsScanned)} detail={`${rulesWithFindings} rules returned findings`} />
+          <MetricTile
+            label="Issues found"
+            value={formatFullNumber(issueTotal)}
+            detail={`${severityCounts.critical} critical pending`}
+          />
+          <MetricTile label="Health score" value={<>{healthScore}<span className="text-xl">%</span></>} detail={`${bundle?.summary.length ?? 0} rules evaluated`} />
+        </section>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="space-y-6">
+            <div className="rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] p-5">
+              <div className="mb-4 font-mono text-xs uppercase tracking-[0.24em] text-[#8a847b]">Findings Overview</div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-[8px] border border-[#f4dcd3] bg-[#fff7f3] p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8f2d1f]">Critical</div>
+                  <div className="mt-2 font-mono text-3xl font-semibold text-[#8f2d1f]">{severityCounts.critical}</div>
+                </div>
+                <div className="rounded-[8px] border border-[#f0d48d] bg-[#fffaf0] p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8a6216]">Warning</div>
+                  <div className="mt-2 font-mono text-3xl font-semibold text-[#8a6216]">{severityCounts.warning}</div>
+                </div>
+                <div className="rounded-[8px] border border-[#c6ddca] bg-[#f4fbf5] p-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#2c6f47]">Info</div>
+                  <div className="mt-2 font-mono text-3xl font-semibold text-[#2c6f47]">{severityCounts.info}</div>
+                </div>
+              </div>
+            </div>
+            <RuleCountList summary={bundle?.summary ?? []} />
+          </aside>
+
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="font-mono text-xs uppercase tracking-[0.24em] text-[#8a847b]">Issues to address</div>
+                <h2 className="mt-1 text-2xl font-semibold text-[#18120a]">Severity-ranked findings</h2>
+              </div>
+              {error ? (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex items-center gap-2 rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-4 py-2 text-sm font-semibold text-[#18120a]"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Retry results
+                </button>
+              ) : null}
+            </div>
+
+            {loading ? (
+              <div className="flex min-h-[320px] items-center justify-center rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] text-sm text-[#8a847b]">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading audit results.
+              </div>
+            ) : error ? (
+              <div className="rounded-[8px] border border-[#f4dcd3] bg-[#fff7f3] p-6 text-sm leading-6 text-[#8f2d1f]">
+                {error}
+              </div>
+            ) : resultIssues.length > 0 ? (
+              <div className="space-y-4">
+                {resultIssues.map((issue) => (
+                  <ResultIssueCard key={issue.ruleId} issue={issue} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[8px] border border-[#c6ddca] bg-[#f4fbf5] p-8 text-center">
+                <CheckCircle2 className="mx-auto h-10 w-10 text-[#2c6f47]" />
+                <h3 className="mt-4 text-2xl font-semibold text-[#18120a]">No issues need attention.</h3>
+                <p className="mx-auto mt-2 max-w-[34rem] text-sm leading-6 text-[#5a544c]">
+                  Every active rule completed without findings. Your project is ready for recurring audits and dashboard monitoring.
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <footer className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#d8d2c2] pt-6">
+          <div>
+            <div className="font-mono text-xs uppercase tracking-[0.24em] text-[#a27820]">Next</div>
+            <p className="mt-1 text-sm text-[#5a544c]">Your project is ready. Schedule recurring audits, or invite teammates to triage findings.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={scheduleRecurring}
+              className="inline-flex items-center gap-2 rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-4 py-3 text-sm font-semibold text-[#18120a]"
+            >
+              <CalendarClock className="h-4 w-4" />
+              Schedule recurring
+            </button>
+            <button
+              type="button"
+              onClick={goToDashboard}
+              className="inline-flex items-center gap-2 rounded-[8px] bg-[#18120a] px-4 py-3 text-sm font-semibold text-[#f5f2eb]"
+            >
+              Go to dashboard
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
 export function InitialUploadOnboarding() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -876,6 +1218,10 @@ export function InitialUploadOnboarding() {
   const [draftRules, setDraftRules] = useState<DraftRule[]>([]);
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(new Set());
   const [conversationRules, setConversationRules] = useState<ConversationRule[]>([]);
+  const [resultsBundle, setResultsBundle] = useState<AuditResultsBundle | null>(null);
+  const [resultsRunId, setResultsRunId] = useState<string | null>(null);
+  const [resultsError, setResultsError] = useState<string | null>(null);
+  const [isResultsLoading, setIsResultsLoading] = useState(false);
 
   function toggleDraftRule(ruleId: string) {
     setSelectedRuleIds((current) => {
@@ -921,6 +1267,9 @@ export function InitialUploadOnboarding() {
       setDraftRules(nextDraftRules);
       setSelectedRuleIds(new Set(nextDraftRules.map((rule) => rule.id)));
       setConversationRules([]);
+      setResultsBundle(null);
+      setResultsRunId(null);
+      setResultsError(null);
       toast.success("First audit workspace created.");
       setScreen("defineRules");
     } catch (error) {
@@ -1014,6 +1363,36 @@ export function InitialUploadOnboarding() {
         rules.map((item) => (item.id === rule.id ? { ...item, active: rule.active } : item)),
       );
       toast.error(error instanceof Error ? error.message : "Could not update rule.");
+    }
+  }
+
+  async function loadAuditResults(projectId: string, runId: string) {
+    setResultsRunId(runId);
+    setResultsBundle(null);
+    setResultsError(null);
+    setIsResultsLoading(true);
+    setScreen("results");
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/findings?run_id=${encodeURIComponent(runId)}`);
+      const payload = (await response.json().catch(() => ({}))) as AuditResultsBundle & {
+        error?: unknown;
+        message?: unknown;
+      };
+
+      if (!response.ok || !payload.run) {
+        const fallback =
+          typeof payload.message === "string"
+            ? payload.message
+            : "Audit completed, but Canary could not load the result details.";
+        throw new Error(readError(payload, fallback));
+      }
+
+      setResultsBundle(payload);
+    } catch (error) {
+      setResultsError(error instanceof Error ? error.message : "Audit completed, but results could not be loaded.");
+    } finally {
+      setIsResultsLoading(false);
     }
   }
 
@@ -1417,6 +1796,7 @@ export function InitialUploadOnboarding() {
     const decoder = new TextDecoder();
     let buffer = "";
     let completed = false;
+    let completedRunId: string | null = null;
 
     while (true) {
       const { value, done } = await reader.read();
@@ -1438,6 +1818,7 @@ export function InitialUploadOnboarding() {
 
         if (event.type === "completed") {
           completed = true;
+          completedRunId = event.run_id;
         }
       }
 
@@ -1448,13 +1829,13 @@ export function InitialUploadOnboarding() {
 
     await auditPresentationQueueRef.current;
 
-    if (!completed) {
+    if (!completed || !completedRunId) {
       throw new Error("Audit stream ended before completion.");
     }
 
     await waitForMinimumAuditDisplay();
     toast.success("Audit complete.");
-    router.push(`/projects/${projectId}/monitoring`);
+    await loadAuditResults(projectId, completedRunId);
     router.refresh();
   }
 
@@ -1527,6 +1908,25 @@ export function InitialUploadOnboarding() {
     );
   }
 
+  if (screen === "results" && projectContext) {
+    return (
+      <OnboardingResultsScreen
+        projectId={projectContext.projectId}
+        file={projectContext.file}
+        bundle={resultsBundle}
+        loading={isResultsLoading}
+        error={resultsError}
+        onRetry={() => {
+          if (resultsRunId) {
+            void loadAuditResults(projectContext.projectId, resultsRunId);
+          }
+        }}
+      />
+    );
+  }
+
+  const iframeScreen = screen === "results" ? "upload" : screen;
+
   return (
     <main className="min-h-[100dvh] bg-[#f1ede4]">
       <input
@@ -1540,7 +1940,7 @@ export function InitialUploadOnboarding() {
       <iframe
         ref={iframeRef}
         title="Canary initial upload onboarding"
-        src={onboardingScreens[screen]}
+        src={onboardingScreens[iframeScreen]}
         className="block h-[100dvh] w-full border-0 bg-[#f1ede4]"
         onLoad={wireDesignFrame}
       />
