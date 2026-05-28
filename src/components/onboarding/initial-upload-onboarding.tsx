@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { DefaultChatTransport } from "ai";
 import { useChat } from "@ai-sdk/react";
+import Papa from "papaparse";
 import {
   AlertTriangle,
   ArrowRight,
@@ -152,6 +153,28 @@ type AuditFrameState = {
   error: string | null;
 };
 
+type ParseLogEntry = {
+  id: string;
+  elapsedMs: number;
+  code: string;
+  message: string;
+  tone: "init" | "read" | "infer" | "stats" | "ok" | "warn" | "fail" | "active";
+};
+
+type ParseFrameState = {
+  fileName: string;
+  fileSizeLabel: string;
+  elapsedMs: number;
+  progress: number;
+  rowsProcessed: number;
+  columnsDetected: number;
+  totalRows: number | null;
+  totalColumns: number | null;
+  status: "idle" | "reading" | "processing" | "complete" | "failed";
+  log: ParseLogEntry[];
+};
+
+const MIN_PARSE_DISPLAY_MS = 10_000;
 const MIN_AUDIT_DISPLAY_MS = 18_000;
 const MIN_RULE_RUNNING_MS = 1_500;
 const MIN_RULE_COMPLETED_MS = 1_000;
@@ -336,6 +359,27 @@ function formatElapsed(ms: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+function formatParseLogTime(ms: number) {
+  const totalHundredths = Math.max(0, Math.floor(ms / 10));
+  const minutes = Math.floor(totalHundredths / 6000);
+  const seconds = Math.floor((totalHundredths % 6000) / 100);
+  const hundredths = totalHundredths % 100;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}`;
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  if (bytes >= 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${bytes} B`;
+}
+
 function formatRuleLabel(index: number) {
   return `R-${String(index + 1).padStart(2, "0")}`;
 }
@@ -369,6 +413,75 @@ function createInitialAuditFrameState(): AuditFrameState {
   };
 }
 
+function createInitialParseFrameState(): ParseFrameState {
+  return {
+    fileName: "uploaded dataset",
+    fileSizeLabel: "0 B",
+    elapsedMs: 0,
+    progress: 0,
+    rowsProcessed: 0,
+    columnsDetected: 0,
+    totalRows: null,
+    totalColumns: null,
+    status: "idle",
+    log: [],
+  };
+}
+
+function makeParseLogEntry(
+  id: string,
+  elapsedMs: number,
+  code: string,
+  message: string,
+  tone: ParseLogEntry["tone"],
+): ParseLogEntry {
+  return { id, elapsedMs, code, message, tone };
+}
+
+function parseFileForPresentation(
+  file: File,
+  onProgress: (snapshot: { rowsProcessed: number; columns: string[] }) => void,
+) {
+  return new Promise<void>((resolve, reject) => {
+    let rowsProcessed = 0;
+    let columns: string[] = [];
+
+    Papa.parse<Record<string, unknown>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
+      chunk: (results) => {
+        if (results.meta.fields?.length) {
+          columns = results.meta.fields.filter(Boolean);
+        }
+
+        rowsProcessed += results.data.length;
+        onProgress({ rowsProcessed, columns });
+      },
+      complete: () => resolve(),
+      error: (error) => reject(error),
+    });
+  });
+}
+
+function getOrCreateDomTemplate(list: HTMLElement, selector: string, templateKey: string) {
+  let template = list.querySelector<HTMLElement>(`[data-canary-template="${templateKey}"]`);
+
+  if (!template) {
+    const firstItem = list.querySelector<HTMLElement>(selector);
+    if (!firstItem) {
+      return null;
+    }
+
+    template = firstItem.cloneNode(true) as HTMLElement;
+    template.dataset.canaryTemplate = templateKey;
+    template.style.display = "none";
+    list.appendChild(template);
+  }
+
+  return template;
+}
+
 function replaceText(document: Document, from: string, to: string) {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode();
@@ -392,6 +505,119 @@ function replaceTextMatching(document: Document, pattern: RegExp, to: string) {
     }
 
     node = walker.nextNode();
+  }
+}
+
+function syncParsingFrameDocument(document: Document, state: ParseFrameState) {
+  const rows = state.totalRows ?? state.rowsProcessed;
+  const columns = state.totalColumns ?? state.columnsDetected;
+  const progress = Math.max(0, Math.min(100, state.progress));
+
+  replaceText(document, "billing_events_q1.csv", state.fileName);
+  replaceText(document, "billing_events_q1", state.fileName.replace(/\.csv$/i, ""));
+  replaceTextMatching(
+    document,
+    /Inferring column types, scanning null density, and building a schema fingerprint\. This usually takes 10–30 seconds\./,
+    "Inferring column types, scanning row counts, and building a schema fingerprint. This stays visible for at least 10 seconds.",
+  );
+
+  const progressValue = document.querySelector<HTMLElement>(".pp-val");
+  if (progressValue) {
+    progressValue.textContent = `${progress}%`;
+  }
+
+  const progressFill = document.querySelector<HTMLElement>(".pp-fill");
+  if (progressFill) {
+    progressFill.style.transition = "width 240ms ease";
+    progressFill.style.width = `${progress}%`;
+  }
+
+  const footItems = Array.from(document.querySelectorAll<HTMLElement>(".pp-foot > span"));
+  if (footItems[0]) {
+    footItems[0].textContent = `${formatFullNumber(rows)} rows · ${columns || "detecting"} columns`;
+  }
+  if (footItems[1]) {
+    const remainingMs = Math.max(0, MIN_PARSE_DISPLAY_MS - state.elapsedMs);
+    footItems[1].textContent =
+      state.status === "complete" ? "Complete" : remainingMs > 0 ? `ETA ${formatElapsed(remainingMs)}` : "Finalizing";
+  }
+
+  const statCards = Array.from(document.querySelectorAll<HTMLElement>(".ps-card"));
+  statCards.forEach((card) => {
+    const label = card.querySelector<HTMLElement>(".ps-label")?.textContent ?? "";
+    const value = card.querySelector<HTMLElement>(".ps-val");
+    const bar = card.querySelector<HTMLElement>(".ps-bar span");
+
+    if (label.includes("ROWS")) {
+      if (value) {
+        value.textContent = formatFullNumber(rows);
+      }
+      if (bar) {
+        bar.style.width = `${progress}%`;
+      }
+      return;
+    }
+
+    if (label.includes("COLUMNS")) {
+      if (value) {
+        value.textContent = columns ? `${columns} / ${columns}` : "detecting";
+      }
+      if (bar) {
+        bar.style.width = columns ? "100%" : "20%";
+      }
+      return;
+    }
+
+    if (label.includes("NULL")) {
+      if (value) {
+        value.textContent = state.status === "complete" ? "scanned" : "pending";
+      }
+      if (bar) {
+        bar.style.width = state.status === "complete" ? "100%" : `${Math.min(72, progress)}%`;
+      }
+    }
+  });
+
+  const consoleBody = document.querySelector<HTMLElement>(".console-body");
+  if (!consoleBody) {
+    return;
+  }
+
+  const template = getOrCreateDomTemplate(consoleBody, ".clog", "parse-log");
+  if (!template) {
+    return;
+  }
+
+  Array.from(consoleBody.querySelectorAll<HTMLElement>(".clog:not([data-canary-template])")).forEach((item) =>
+    item.remove(),
+  );
+
+  state.log.forEach((entry) => {
+    const row = template.cloneNode(true) as HTMLElement;
+    delete row.dataset.canaryTemplate;
+    row.style.display = "";
+    row.className = `clog clog-${entry.tone}`;
+
+    const time = row.querySelector<HTMLElement>(".clog-t");
+    const key = row.querySelector<HTMLElement>(".clog-k");
+    const value = row.querySelector<HTMLElement>(".clog-v");
+
+    if (time) {
+      time.textContent = formatParseLogTime(entry.elapsedMs);
+    }
+    if (key) {
+      key.textContent = entry.code.padEnd(5, " ");
+    }
+    if (value) {
+      value.textContent = entry.message;
+    }
+
+    consoleBody.insertBefore(row, template);
+  });
+
+  const pulse = document.querySelector<HTMLElement>(".ch-pulse");
+  if (pulse) {
+    pulse.textContent = state.status === "failed" ? "FAILED" : state.status === "complete" ? "DONE" : "LIVE";
   }
 }
 
@@ -617,6 +843,90 @@ function InitialAiSummary({
   );
 }
 
+function OnboardingShell({
+  activeStep,
+  projectLabel,
+  children,
+}: {
+  activeStep: "defineRules" | "auditRunning" | "results";
+  projectLabel: string;
+  children: ReactNode;
+}) {
+  const steps = [
+    { key: "upload", number: "01", label: "Upload" },
+    { key: "parsing", number: "02", label: "Parse" },
+    { key: "defineRules", number: "03", label: "Define Rules" },
+    { key: "auditRunning", number: "04", label: "Audit" },
+    { key: "results", number: "05", label: "Results" },
+  ] as const;
+  const activeIndex = steps.findIndex((step) => step.key === activeStep);
+
+  return (
+    <main className="min-h-[100dvh] bg-[#f1ede4] text-[#18120a]">
+      <div className="grid min-h-[100dvh] lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="hidden border-r border-white/10 bg-[#0e0e10] px-5 py-6 text-[#f5f2eb] lg:flex lg:flex-col">
+          <div className="mb-8 flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-[8px] border border-[#d4a94a]/40 bg-[#d4a94a] font-mono font-bold text-[#18120a]">
+              C
+            </div>
+            <div>
+              <div className="text-lg font-semibold">Canary</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#a8a7a2]">Data audit</div>
+            </div>
+          </div>
+
+          <nav className="space-y-2">
+            <div className="rounded-[8px] bg-white/[0.08] px-3 py-2 text-sm font-semibold">Projects</div>
+          </nav>
+
+          <div className="mt-auto space-y-2 text-sm text-[#a8a7a2]">
+            <div>Documentation</div>
+            <div>Settings</div>
+          </div>
+        </aside>
+
+        <section className="min-w-0">
+          <div className="border-b border-[#d8d2c2] bg-[#f5f2eb] px-5 py-4 lg:px-7">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3 text-sm text-[#5a544c]">
+                <span className="font-mono text-[#8a847b]">Projects</span>
+                <span className="text-[#8a847b]">›</span>
+                <span className="truncate font-semibold text-[#18120a]">{projectLabel}</span>
+              </div>
+              <div className="min-w-[220px] rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-3 py-2 text-sm text-[#8a847b]">
+                Search parameters...
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-5">
+              {steps.map((step, index) => {
+                const status = index < activeIndex ? "done" : index === activeIndex ? "active" : "todo";
+                return (
+                  <div
+                    key={step.key}
+                    className={`rounded-[8px] border px-3 py-2 ${
+                      status === "active"
+                        ? "border-[#d4a94a] bg-[#f4e8c4]"
+                        : status === "done"
+                          ? "border-[#c8c1ad] bg-[#fbf9f3]"
+                          : "border-[#e6e0d2] bg-[#f5f2eb] text-[#8a847b]"
+                    }`}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em]">{step.number}</div>
+                    <div className="mt-1 text-sm font-semibold">{step.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {children}
+        </section>
+      </div>
+    </main>
+  );
+}
+
 function RuleDefinitionOnboarding({
   context,
   draftRules,
@@ -696,7 +1006,7 @@ function RuleDefinitionOnboarding({
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
+    <div className="min-h-[calc(100dvh-142px)] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
       <div className="mx-auto grid min-h-[calc(100dvh-40px)] max-w-[1600px] gap-7 lg:grid-cols-[minmax(0,1fr)_440px]">
         <section className="rounded-[8px] border border-[#e6e0d2] bg-[#f5f2eb] p-7 lg:p-10">
           <div className="mb-9 flex flex-wrap items-start justify-between gap-5">
@@ -874,7 +1184,7 @@ function RuleDefinitionOnboarding({
           </div>
         </aside>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -1074,7 +1384,7 @@ function OnboardingResultsScreen({
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
+    <div className="min-h-[calc(100dvh-142px)] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
       <div className="mx-auto min-h-[calc(100dvh-40px)] max-w-[1600px] rounded-[8px] border border-[#e6e0d2] bg-[#f5f2eb] p-6 lg:p-8">
         <header className="flex flex-wrap items-start justify-between gap-5 border-b border-[#d8d2c2] pb-6">
           <div className="space-y-4">
@@ -1196,7 +1506,7 @@ function OnboardingResultsScreen({
           </div>
         </footer>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -1211,9 +1521,16 @@ export function InitialUploadOnboarding() {
   const auditPresentationStartedAtRef = useRef<number | null>(null);
   const isAuditPresentationCancelledRef = useRef(false);
   const isFinalizingRef = useRef(false);
+  const parseStartedAtRef = useRef<number | null>(null);
+  const parseAnimationIntervalRef = useRef<number | null>(null);
+  const parseLogTimeoutsRef = useRef<number[]>([]);
+  const parseSessionRef = useRef(0);
+  const parseServerCompleteRef = useRef(false);
+  const parseHeaderLoggedRef = useRef(false);
   const [screen, setScreen] = useState<OnboardingScreen>("upload");
   const [isUploading, setIsUploading] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [parseFrameState, setParseFrameState] = useState<ParseFrameState>(createInitialParseFrameState());
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
   const [draftRules, setDraftRules] = useState<DraftRule[]>([]);
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(new Set());
@@ -1222,6 +1539,17 @@ export function InitialUploadOnboarding() {
   const [resultsRunId, setResultsRunId] = useState<string | null>(null);
   const [resultsError, setResultsError] = useState<string | null>(null);
   const [isResultsLoading, setIsResultsLoading] = useState(false);
+
+  useEffect(() => {
+    if (screen === "parsing") {
+      const document = iframeRef.current?.contentDocument;
+      if (document) {
+        syncParsingFrameDocument(document, parseFrameState);
+      }
+    }
+  }, [parseFrameState, screen]);
+
+  useEffect(() => () => clearParsePresentationTimers(), []);
 
   function toggleDraftRule(ruleId: string) {
     setSelectedRuleIds((current) => {
@@ -1237,6 +1565,101 @@ export function InitialUploadOnboarding() {
     });
   }
 
+  function clearParsePresentationTimers() {
+    if (parseAnimationIntervalRef.current !== null) {
+      window.clearInterval(parseAnimationIntervalRef.current);
+      parseAnimationIntervalRef.current = null;
+    }
+
+    parseLogTimeoutsRef.current.forEach((timeout) => window.clearTimeout(timeout));
+    parseLogTimeoutsRef.current = [];
+  }
+
+  function addParseLogEntry(code: string, message: string, tone: ParseLogEntry["tone"]) {
+    const startedAt = parseStartedAtRef.current ?? Date.now();
+    const elapsedMs = Date.now() - startedAt;
+
+    setParseFrameState((current) => ({
+      ...current,
+      elapsedMs,
+      log: [
+        ...current.log,
+        makeParseLogEntry(`${elapsedMs}-${code}-${current.log.length}`, elapsedMs, code, message, tone),
+      ].slice(-10),
+    }));
+  }
+
+  function scheduleParseLog(ms: number, code: string, message: string, tone: ParseLogEntry["tone"]) {
+    const timeout = window.setTimeout(() => {
+      addParseLogEntry(code, message, tone);
+    }, ms);
+    parseLogTimeoutsRef.current.push(timeout);
+  }
+
+  function startParsePresentation(file: File) {
+    clearParsePresentationTimers();
+    parseSessionRef.current += 1;
+    parseServerCompleteRef.current = false;
+    parseHeaderLoggedRef.current = false;
+    parseStartedAtRef.current = Date.now();
+
+    setParseFrameState({
+      fileName: file.name,
+      fileSizeLabel: formatFileSize(file.size),
+      elapsedMs: 0,
+      progress: 4,
+      rowsProcessed: 0,
+      columnsDetected: 0,
+      totalRows: null,
+      totalColumns: null,
+      status: "reading",
+      log: [
+        makeParseLogEntry("0-init", 0, "INIT", `Stream opened - ${file.name} (${formatFileSize(file.size)})`, "init"),
+      ],
+    });
+
+    scheduleParseLog(250, "READ", "Scanning header row", "read");
+    scheduleParseLog(1_100, "INFER", "Inferring column types", "infer");
+    scheduleParseLog(2_400, "STATS", "Building cardinality profile", "stats");
+    scheduleParseLog(4_800, "INDEX", "Preparing schema fingerprint", "active");
+
+    parseAnimationIntervalRef.current = window.setInterval(() => {
+      const startedAt = parseStartedAtRef.current ?? Date.now();
+      const elapsedMs = Date.now() - startedAt;
+      const maxProgress = parseServerCompleteRef.current ? 100 : 92;
+      const timeProgress = Math.min(maxProgress, Math.floor(8 + (elapsedMs / MIN_PARSE_DISPLAY_MS) * 78));
+
+      setParseFrameState((current) => ({
+        ...current,
+        elapsedMs,
+        progress: Math.min(maxProgress, Math.max(current.progress, timeProgress)),
+        status: parseServerCompleteRef.current ? "complete" : elapsedMs > 1_000 ? "processing" : current.status,
+      }));
+    }, 250);
+  }
+
+  function recordClientParseProgress(
+    sessionId: number,
+    snapshot: { rowsProcessed: number; columns: string[] },
+  ) {
+    if (sessionId !== parseSessionRef.current) {
+      return;
+    }
+
+    setParseFrameState((current) => ({
+      ...current,
+      rowsProcessed: Math.max(current.rowsProcessed, snapshot.rowsProcessed),
+      columnsDetected: Math.max(current.columnsDetected, snapshot.columns.length),
+    }));
+
+    if (snapshot.columns.length > 0) {
+      if (!parseHeaderLoggedRef.current) {
+        parseHeaderLoggedRef.current = true;
+        addParseLogEntry("READ", `Header row detected - ${snapshot.columns.length} columns`, "read");
+      }
+    }
+  }
+
   async function upload(file: File) {
     if (!isCsvFile(file)) {
       toast.error("Only .csv files are supported for the first upload.");
@@ -1244,7 +1667,17 @@ export function InitialUploadOnboarding() {
     }
 
     setIsUploading(true);
+    startParsePresentation(file);
     setScreen("parsing");
+    const sessionId = parseSessionRef.current;
+    const minimumDisplay = wait(MIN_PARSE_DISPLAY_MS);
+    const clientParse = parseFileForPresentation(file, (snapshot) => recordClientParseProgress(sessionId, snapshot)).catch(
+      (error) => {
+        if (sessionId === parseSessionRef.current) {
+          addParseLogEntry("WARN", error instanceof Error ? error.message : "Browser-side row count paused", "warn");
+        }
+      },
+    );
 
     try {
       const formData = new FormData();
@@ -1261,6 +1694,20 @@ export function InitialUploadOnboarding() {
       }
 
       const nextDraftRules = buildDraftRules(payload.file);
+      parseServerCompleteRef.current = true;
+      setParseFrameState((current) => ({
+        ...current,
+        elapsedMs: parseStartedAtRef.current ? Date.now() - parseStartedAtRef.current : current.elapsedMs,
+        progress: 100,
+        rowsProcessed: payload.file?.row_count ?? current.rowsProcessed,
+        columnsDetected: payload.file?.columns.length ?? current.columnsDetected,
+        totalRows: payload.file?.row_count ?? null,
+        totalColumns: payload.file?.columns.length ?? null,
+        status: "complete",
+      }));
+      addParseLogEntry("OK", `Schema fingerprint ready - ${payload.file.columns.length} columns`, "ok");
+      addParseLogEntry("DONE", `Workspace created with ${formatFullNumber(payload.file.row_count)} rows`, "ok");
+      await Promise.all([minimumDisplay, clientParse]);
 
       createdRuleKeysRef.current = new Set();
       setProjectContext({ projectId: payload.project.id, file: payload.file });
@@ -1271,8 +1718,18 @@ export function InitialUploadOnboarding() {
       setResultsRunId(null);
       setResultsError(null);
       toast.success("First audit workspace created.");
+      clearParsePresentationTimers();
       setScreen("defineRules");
     } catch (error) {
+      parseServerCompleteRef.current = true;
+      addParseLogEntry("FAIL", error instanceof Error ? error.message : "Initial upload failed.", "fail");
+      setParseFrameState((current) => ({
+        ...current,
+        status: "failed",
+        elapsedMs: parseStartedAtRef.current ? Date.now() - parseStartedAtRef.current : current.elapsedMs,
+      }));
+      clearParsePresentationTimers();
+      parseSessionRef.current += 1;
       toast.error(error instanceof Error ? error.message : "Initial upload failed.");
       setScreen("upload");
     } finally {
@@ -1374,21 +1831,32 @@ export function InitialUploadOnboarding() {
     setScreen("results");
 
     try {
-      const response = await fetch(`/api/projects/${projectId}/findings?run_id=${encodeURIComponent(runId)}`);
-      const payload = (await response.json().catch(() => ({}))) as AuditResultsBundle & {
-        error?: unknown;
-        message?: unknown;
-      };
+      let lastError: Error | null = null;
 
-      if (!response.ok || !payload.run) {
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        if (attempt > 0) {
+          await wait(700);
+        }
+
+        const response = await fetch(`/api/projects/${projectId}/findings?run_id=${encodeURIComponent(runId)}`);
+        const payload = (await response.json().catch(() => ({}))) as AuditResultsBundle & {
+          error?: unknown;
+          message?: unknown;
+        };
+
+        if (response.ok && payload.run) {
+          setResultsBundle(payload);
+          return;
+        }
+
         const fallback =
           typeof payload.message === "string"
             ? payload.message
             : "Audit completed, but Canary could not load the result details.";
-        throw new Error(readError(payload, fallback));
+        lastError = new Error(readError(payload, fallback));
       }
 
-      setResultsBundle(payload);
+      throw lastError ?? new Error("Audit completed, but Canary could not load the result details.");
     } catch (error) {
       setResultsError(error instanceof Error ? error.message : "Audit completed, but results could not be loaded.");
     } finally {
@@ -1844,21 +2312,46 @@ export function InitialUploadOnboarding() {
       return;
     }
 
+    const enabledCount = draftRules.filter((rule) => selectedRuleIds.has(rule.id)).length +
+      conversationRules.filter((rule) => rule.active).length;
+
+    if (enabledCount === 0) {
+      toast.error("Select at least one rule before running an audit.");
+      return;
+    }
+
     isFinalizingRef.current = true;
     setIsFinalizing(true);
+    resetAuditFrameState();
+    setScreen("auditRunning");
 
     try {
       await createSelectedDraftRules();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not create rules.");
+      setScreen("defineRules");
+      isFinalizingRef.current = false;
+      setIsFinalizing(false);
+      return;
+    }
 
-      resetAuditFrameState();
-      setScreen("auditRunning");
+    try {
       await runAuditWithProgress(projectContext.projectId);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
-      toast.error(error instanceof Error ? error.message : "Could not create rules.");
+      auditFrameStateRef.current = {
+        ...auditFrameStateRef.current,
+        completedAt: Date.now(),
+        error: error instanceof Error ? error.message : "Audit failed.",
+      };
+      const document = iframeRef.current?.contentDocument;
+      if (document) {
+        syncAuditRunningFrame(document);
+      }
+      toast.error(error instanceof Error ? error.message : "Audit failed.");
     } finally {
       isFinalizingRef.current = false;
       setIsFinalizing(false);
@@ -1869,6 +2362,11 @@ export function InitialUploadOnboarding() {
     const document = iframeRef.current?.contentDocument;
 
     if (!document) {
+      return;
+    }
+
+    if (screen === "parsing") {
+      syncParsingFrameDocument(document, parseFrameState);
       return;
     }
 
@@ -1894,34 +2392,44 @@ export function InitialUploadOnboarding() {
 
   if (screen === "defineRules" && projectContext) {
     return (
-      <RuleDefinitionOnboarding
-        context={projectContext}
-        draftRules={draftRules}
-        selectedRuleIds={selectedRuleIds}
-        conversationRules={conversationRules}
-        isFinalizing={isFinalizing}
-        onToggleDraft={toggleDraftRule}
-        onConversationRulesChange={setConversationRules}
-        onToggleConversationRule={toggleConversationRule}
-        onRunAudit={() => void runAuditFromDefinedRules()}
-      />
+      <OnboardingShell
+        activeStep="defineRules"
+        projectLabel={projectContext.file.original_name.replace(/\.csv$/i, "")}
+      >
+        <RuleDefinitionOnboarding
+          context={projectContext}
+          draftRules={draftRules}
+          selectedRuleIds={selectedRuleIds}
+          conversationRules={conversationRules}
+          isFinalizing={isFinalizing}
+          onToggleDraft={toggleDraftRule}
+          onConversationRulesChange={setConversationRules}
+          onToggleConversationRule={toggleConversationRule}
+          onRunAudit={() => void runAuditFromDefinedRules()}
+        />
+      </OnboardingShell>
     );
   }
 
   if (screen === "results" && projectContext) {
     return (
-      <OnboardingResultsScreen
-        projectId={projectContext.projectId}
-        file={projectContext.file}
-        bundle={resultsBundle}
-        loading={isResultsLoading}
-        error={resultsError}
-        onRetry={() => {
-          if (resultsRunId) {
-            void loadAuditResults(projectContext.projectId, resultsRunId);
-          }
-        }}
-      />
+      <OnboardingShell
+        activeStep="results"
+        projectLabel={projectContext.file.original_name.replace(/\.csv$/i, "")}
+      >
+        <OnboardingResultsScreen
+          projectId={projectContext.projectId}
+          file={projectContext.file}
+          bundle={resultsBundle}
+          loading={isResultsLoading}
+          error={resultsError}
+          onRetry={() => {
+            if (resultsRunId) {
+              void loadAuditResults(projectContext.projectId, resultsRunId);
+            }
+          }}
+        />
+      </OnboardingShell>
     );
   }
 
