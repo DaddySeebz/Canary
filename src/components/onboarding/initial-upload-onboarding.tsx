@@ -979,27 +979,27 @@ function InitialUploadScreen({
                     onFilesSelected(event.dataTransfer.files);
                   }
                 }}
-                className={`group grid h-[clamp(11rem,34dvh,23rem)] min-h-0 shrink-0 place-items-center rounded-[8px] border border-dashed px-4 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d4a94a] disabled:cursor-not-allowed sm:h-[clamp(14rem,38dvh,25rem)] ${
+                className={`group grid min-h-[15.5rem] flex-1 place-items-stretch rounded-[8px] border border-dashed p-5 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d4a94a] disabled:cursor-not-allowed sm:min-h-[19rem] sm:p-8 lg:min-h-[20rem] lg:p-10 ${
                   isDragActive
                     ? "border-[#d4a94a] bg-[#f4e8c4]"
                     : "border-[#c8c1ad] bg-[#fbf9f3] hover:border-[#d4a94a] hover:bg-[#fffdf8]"
                 }`}
               >
-                <span className="flex max-w-[34rem] flex-col items-center">
+                <span className="flex h-full min-h-0 w-full max-w-[38rem] flex-col items-center justify-center justify-self-center gap-2 sm:gap-4">
                   <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#a27820] sm:text-[11px]">
                     Canary · Listening for file
                   </span>
-                  <span className="mt-4 grid h-20 w-20 place-items-center rounded-[8px] border border-[#d4a94a]/35 bg-[#111113] text-[#d4a94a] shadow-[0_18px_48px_-34px_rgba(15,15,15,0.5)] sm:h-24 sm:w-24">
+                  <span className="grid h-12 w-12 place-items-center rounded-[8px] border border-[#d4a94a]/35 bg-[#111113] text-[#d4a94a] shadow-[0_18px_48px_-34px_rgba(15,15,15,0.5)] sm:h-24 sm:w-24">
                     {isUploading ? <Loader2 className="h-9 w-9 animate-spin" /> : <FileUp className="h-9 w-9" />}
                   </span>
-                  <span className="mt-4 text-2xl font-semibold tracking-normal text-[#d4a94a] sm:text-4xl">
+                  <span className="text-[1.7rem] font-semibold leading-tight tracking-normal text-[#d4a94a] sm:text-4xl">
                     {isUploading ? "Preparing your dataset..." : "Upload dataset"}
                   </span>
-                  <span className="mt-3 inline-flex items-center gap-2 rounded-[8px] border border-[#d4a94a]/30 bg-[#d4a94a] px-4 py-2 text-sm font-semibold text-[#18120a] transition-colors group-hover:bg-[#e8c76a]">
+                  <span className="inline-flex items-center gap-2 rounded-[8px] border border-[#d4a94a]/30 bg-[#d4a94a] px-4 py-2 text-sm font-semibold text-[#18120a] transition-colors group-hover:bg-[#e8c76a]">
                     <UploadCloud className="h-4 w-4" />
                     Choose CSV
                   </span>
-                  <span className="mt-3 text-xs leading-5 text-[#6d6c68] sm:text-sm">
+                  <span className="max-w-[32rem] px-2 text-xs leading-5 text-[#6d6c68] sm:text-sm">
                     Drag and drop a .csv file here. Files stay in your workspace.
                   </span>
                 </span>
