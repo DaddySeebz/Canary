@@ -10,14 +10,19 @@ import {
   Bot,
   CalendarClock,
   CheckCircle2,
+  FileUp,
+  FolderKanban,
   Loader2,
   Play,
   RefreshCw,
+  Search,
   Send,
   ShieldAlert,
+  UploadCloud,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { CanaryLogo } from "@/components/branding/canary-logo";
 import { toast } from "@/components/ui/sonner";
 import {
   buildResultIssues,
@@ -180,13 +185,11 @@ const MIN_RULE_RUNNING_MS = 1_500;
 const MIN_RULE_COMPLETED_MS = 1_000;
 
 const onboardingScreens = {
-  upload: "/onboarding/01-initial-upload.html",
   parsing: "/onboarding/02-parsing.html",
-  defineRules: "react",
   auditRunning: "/onboarding/04-audit-running.html",
 } as const;
 
-type OnboardingScreen = keyof typeof onboardingScreens | "results";
+type OnboardingScreen = "upload" | keyof typeof onboardingScreens | "defineRules" | "results";
 
 function isCsvFile(file: File) {
   return file.name.toLowerCase().endsWith(".csv") || file.type === "text/csv";
@@ -840,6 +843,172 @@ function InitialAiSummary({
         </p>
       </div>
     </div>
+  );
+}
+
+function InitialUploadScreen({
+  disabled,
+  isUploading,
+  isDragActive,
+  onChooseFile,
+  onDragActiveChange,
+  onFilesSelected,
+}: {
+  disabled: boolean;
+  isUploading: boolean;
+  isDragActive: boolean;
+  onChooseFile: () => void;
+  onDragActiveChange: (active: boolean) => void;
+  onFilesSelected: (files: FileList | null) => void;
+}) {
+  const steps = [
+    { number: "01", label: "Upload", active: true },
+    { number: "02", label: "Parse", active: false },
+    { number: "03", label: "Define Rules", active: false },
+    { number: "04", label: "Audit", active: false },
+    { number: "05", label: "Results", active: false },
+  ];
+
+  return (
+    <main className="h-[100dvh] overflow-hidden bg-[#f1ede4] text-[#18120a]">
+      <div className="grid h-full min-h-0 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="hidden min-h-0 border-r border-white/10 bg-[#0e0e10] px-5 py-6 text-[#f5f2eb] lg:flex lg:flex-col">
+          <CanaryLogo variant="inline" surface="dark" showTagline={false} />
+
+          <nav className="mt-12 space-y-2">
+            <div className="flex items-center gap-3 rounded-[8px] border border-[#d4a94a]/25 bg-[#d4a94a]/10 px-4 py-4 text-sm font-semibold text-[#d4a94a]">
+              <FolderKanban className="h-5 w-5" />
+              Projects
+            </div>
+          </nav>
+
+          <div className="mt-auto space-y-3 border-t border-white/10 pt-5 text-sm text-[#8f8f8b]">
+            <div>Documentation</div>
+            <div>Settings</div>
+          </div>
+        </aside>
+
+        <section className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)]">
+          <header className="border-b border-[#d8d2c2] bg-[#f5f2eb]/95">
+            <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:min-h-20 lg:px-9">
+              <div className="flex min-w-0 items-center gap-3">
+                <CanaryLogo className="lg:hidden" variant="mark" surface="light" showTagline={false} />
+                <div className="flex min-w-0 items-center gap-2 text-sm text-[#5a544c] sm:gap-3">
+                  <span className="hidden sm:inline">Projects</span>
+                  <span className="hidden text-[#8a847b] sm:inline">›</span>
+                  <span className="hidden sm:inline">New Audit</span>
+                  <span className="hidden text-[#8a847b] sm:inline">›</span>
+                  <span className="truncate font-semibold text-[#18120a]">Upload Dataset</span>
+                </div>
+              </div>
+
+              <div className="hidden h-10 min-w-[220px] items-center gap-3 rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-3 text-sm text-[#8a847b] md:flex lg:min-w-[320px]">
+                <Search className="h-4 w-4" />
+                Search parameters...
+              </div>
+            </div>
+          </header>
+
+          <div className="min-h-0 px-4 py-4 sm:px-6 sm:py-5 lg:px-9 lg:py-6">
+            <div className="mx-auto flex h-full max-w-[1120px] flex-col gap-4 lg:gap-5">
+              <div className="shrink-0 overflow-x-auto rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] shadow-[0_1px_0_rgba(15,15,15,0.04)]">
+                <div className="flex min-w-max items-center gap-3 px-3 py-2.5 sm:px-4 lg:min-w-0">
+                  {steps.map((step, index) => (
+                    <div key={step.number} className="flex items-center gap-3">
+                      <div
+                        className={`flex items-center gap-2 whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.2em] ${
+                          step.active ? "text-[#a27820]" : "text-[#9f998f]"
+                        }`}
+                      >
+                        <span
+                          className={`grid h-8 w-8 place-items-center rounded-full border text-[11px] font-bold tracking-normal ${
+                            step.active
+                              ? "border-[#d4a94a] bg-[#d4a94a] text-[#18120a] shadow-[0_0_0_5px_rgba(212,169,74,0.16)]"
+                              : "border-[#d8d2c2] bg-[#f5f2eb] text-[#8a847b]"
+                          }`}
+                        >
+                          {step.number}
+                        </span>
+                        <span>{step.label}</span>
+                      </div>
+                      {index < steps.length - 1 ? <div className="h-px w-10 bg-[#d8d2c2] sm:w-16 lg:w-24" /> : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="shrink-0">
+                <div className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#8a847b]">Step 01 // Ingestion</div>
+                <div className="mt-2 max-w-[48rem]">
+                  <h1 className="text-[2rem] font-semibold leading-none tracking-normal text-[#18120a] sm:text-5xl lg:text-[3.35rem]">
+                    Begin with a <span className="text-[#d4a94a]">dataset</span>.
+                  </h1>
+                  <p className="mt-3 max-w-[43rem] text-sm leading-6 text-[#5a544c] sm:text-base sm:leading-7">
+                    Upload a CSV and Canary will parse the schema, infer types, and prepare your first audit workspace.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={onChooseFile}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  if (!disabled) {
+                    onDragActiveChange(true);
+                  }
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  if (!disabled) {
+                    onDragActiveChange(true);
+                  }
+                }}
+                onDragLeave={(event) => {
+                  event.preventDefault();
+                  const nextTarget = event.relatedTarget;
+                  if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+                    onDragActiveChange(false);
+                  }
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  onDragActiveChange(false);
+                  if (!disabled) {
+                    onFilesSelected(event.dataTransfer.files);
+                  }
+                }}
+                className={`group grid h-[clamp(11rem,34dvh,23rem)] min-h-0 shrink-0 place-items-center rounded-[8px] border border-dashed px-4 text-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d4a94a] disabled:cursor-not-allowed sm:h-[clamp(14rem,38dvh,25rem)] ${
+                  isDragActive
+                    ? "border-[#d4a94a] bg-[#f4e8c4]"
+                    : "border-[#c8c1ad] bg-[#fbf9f3] hover:border-[#d4a94a] hover:bg-[#fffdf8]"
+                }`}
+              >
+                <span className="flex max-w-[34rem] flex-col items-center">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-[#a27820] sm:text-[11px]">
+                    Canary · Listening for file
+                  </span>
+                  <span className="mt-4 grid h-20 w-20 place-items-center rounded-[8px] border border-[#d4a94a]/35 bg-[#111113] text-[#d4a94a] shadow-[0_18px_48px_-34px_rgba(15,15,15,0.5)] sm:h-24 sm:w-24">
+                    {isUploading ? <Loader2 className="h-9 w-9 animate-spin" /> : <FileUp className="h-9 w-9" />}
+                  </span>
+                  <span className="mt-4 text-2xl font-semibold tracking-normal text-[#d4a94a] sm:text-4xl">
+                    {isUploading ? "Preparing your dataset..." : "Upload dataset"}
+                  </span>
+                  <span className="mt-3 inline-flex items-center gap-2 rounded-[8px] border border-[#d4a94a]/30 bg-[#d4a94a] px-4 py-2 text-sm font-semibold text-[#18120a] transition-colors group-hover:bg-[#e8c76a]">
+                    <UploadCloud className="h-4 w-4" />
+                    Choose CSV
+                  </span>
+                  <span className="mt-3 text-xs leading-5 text-[#6d6c68] sm:text-sm">
+                    Drag and drop a .csv file here. Files stay in your workspace.
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
 
@@ -1529,6 +1698,7 @@ export function InitialUploadOnboarding() {
   const parseHeaderLoggedRef = useRef(false);
   const [screen, setScreen] = useState<OnboardingScreen>("upload");
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadDragActive, setIsUploadDragActive] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [parseFrameState, setParseFrameState] = useState<ParseFrameState>(createInitialParseFrameState());
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
@@ -2372,22 +2542,7 @@ export function InitialUploadOnboarding() {
 
     if (screen === "auditRunning") {
       syncAuditRunningFrame(document);
-      return;
     }
-
-    const chooseFileButton = document.querySelector<HTMLButtonElement>(".btn-primary");
-    chooseFileButton?.addEventListener("click", (event) => {
-      event.preventDefault();
-      inputRef.current?.click();
-    });
-
-    document.addEventListener("dragover", (event) => {
-      event.preventDefault();
-    });
-    document.addEventListener("drop", (event) => {
-      event.preventDefault();
-      handleFiles(event.dataTransfer?.files ?? null);
-    });
   }
 
   if (screen === "defineRules" && projectContext) {
@@ -2433,7 +2588,30 @@ export function InitialUploadOnboarding() {
     );
   }
 
-  const iframeScreen = screen === "results" ? "upload" : screen;
+  if (screen === "upload") {
+    return (
+      <>
+        <input
+          ref={inputRef}
+          hidden
+          type="file"
+          accept=".csv,text/csv"
+          disabled={isUploading || isFinalizing}
+          onChange={(event) => handleFiles(event.target.files)}
+        />
+        <InitialUploadScreen
+          disabled={isUploading || isFinalizing}
+          isUploading={isUploading}
+          isDragActive={isUploadDragActive}
+          onChooseFile={() => inputRef.current?.click()}
+          onDragActiveChange={setIsUploadDragActive}
+          onFilesSelected={handleFiles}
+        />
+      </>
+    );
+  }
+
+  const iframeScreen = screen === "auditRunning" ? "auditRunning" : "parsing";
 
   return (
     <main className="min-h-[100dvh] bg-[#f1ede4]">
