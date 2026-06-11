@@ -64,19 +64,19 @@ export function IssueCard({
     <Card className="border-[color:var(--workspace-border)] bg-white">
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
+          <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={issue.severity}>{issue.severity}</Badge>
               <span className="text-xs uppercase tracking-[0.18em] text-slate-400">
                 {issue.rule_type.replaceAll("_", " ")}
               </span>
             </div>
-            <div className="text-sm font-semibold text-slate-950">{issue.description_plain}</div>
+            <div className="break-words text-sm font-semibold text-slate-950">{issue.description_plain}</div>
             <div className="font-mono text-xs text-slate-500">
               {issue.finding_count} rows affected • {fileCount || issue.file_count} files
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setExpanded((value) => !value)}>
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               {expanded ? "Hide Findings" : "Show Findings"}
@@ -92,8 +92,8 @@ export function IssueCard({
           {resolution?.suggestion || "Review the flagged rows and correct the source values before the next run."}
         </div>
         {expanded ? (
-          <div className="overflow-hidden rounded-[0.75rem] border border-[color:var(--workspace-border)]">
-            <Table>
+          <div className="overflow-x-auto rounded-[0.75rem] border border-[color:var(--workspace-border)]">
+            <Table className="min-w-[42rem]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Row</TableHead>
@@ -106,9 +106,9 @@ export function IssueCard({
                 {preview.map((finding) => (
                   <TableRow key={finding.id}>
                     <TableCell className="font-mono text-xs">{finding.row_number}</TableCell>
-                    <TableCell className="font-mono text-xs">{finding.column_name || "—"}</TableCell>
-                    <TableCell className="font-mono text-xs">{finding.value || "—"}</TableCell>
-                    <TableCell>{finding.message}</TableCell>
+                    <TableCell className="max-w-[12rem] break-words font-mono text-xs">{finding.column_name || "—"}</TableCell>
+                    <TableCell className="max-w-[12rem] break-words font-mono text-xs">{finding.value || "—"}</TableCell>
+                    <TableCell className="min-w-[16rem] break-words">{finding.message}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

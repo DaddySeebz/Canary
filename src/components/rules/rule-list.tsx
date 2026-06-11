@@ -62,8 +62,8 @@ export function RuleList({
     <div className="space-y-3">
       {rules.map((rule) => (
         <div key={rule.id} className="rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-slate-50 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant={
@@ -80,7 +80,7 @@ export function RuleList({
                   {rule.rule_type.replaceAll("_", " ")}
                 </span>
               </div>
-              <div className="text-sm font-medium text-slate-950">{rule.description_plain}</div>
+              <div className="break-words text-sm font-medium text-slate-950">{rule.description_plain}</div>
             </div>
             <div className="flex items-center gap-2">
               {readOnly ? (

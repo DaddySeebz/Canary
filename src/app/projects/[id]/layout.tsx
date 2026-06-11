@@ -24,9 +24,9 @@ export default async function ProjectLayout({
           </Link>{" "}
           / <span className="text-slate-900">{project.name}</span>
         </div>
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <div className="text-[11px] uppercase tracking-[0.24em] text-amber-700">Project workspace</div>
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-950">{project.name}</h1>
+          <h1 className="break-words text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{project.name}</h1>
           <p className="max-w-[65ch] text-base leading-8 text-slate-500">
             {project.description || "Configure your data source, define the monitoring logic, and keep downstream reporting trustworthy."}
           </p>

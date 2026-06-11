@@ -36,7 +36,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] bg-[color:var(--workspace-bg)] text-[color:var(--workspace-ink)] lg:grid lg:grid-cols-[292px_minmax(0,1fr)]">
-      <aside className="border-r border-white/5 bg-[#0d0d0f] px-5 py-6 text-zinc-200">
+      <aside className="hidden border-r border-white/5 bg-[#0d0d0f] px-5 py-6 text-zinc-200 lg:block">
         <div className="flex h-full flex-col">
           <div className="space-y-8">
             <CanaryLogo variant="inline" surface="dark" showTagline={false} />
@@ -98,24 +98,24 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
       <div className="min-w-0">
         <header className="workspace-grid sticky top-0 z-20 border-b border-[color:var(--workspace-border)] bg-[color:var(--workspace-bg)]/95 backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-8">
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-6 text-sm font-medium">
+          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-5 md:px-8 md:py-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-3 text-sm font-medium sm:gap-6">
                 <Link href="/projects" className={cn("transition-colors hover:text-slate-950", pathname === "/projects" ? "text-amber-700" : "text-slate-500")}>
                   Projects
                 </Link>
                 {projectId ? (
                   <>
                     <span className="text-slate-300">/</span>
-                    <span className="text-slate-900">Workspace</span>
+                    <span className="truncate text-slate-900">Workspace</span>
                   </>
                 ) : null}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex h-11 min-w-[280px] items-center gap-3 rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-white px-4 text-sm text-slate-500">
+              <div className="hidden h-11 min-w-0 items-center gap-3 rounded-[0.75rem] border border-[color:var(--workspace-border)] bg-white px-4 text-sm text-slate-500 sm:flex sm:w-[min(38vw,22rem)]">
                 <Search className="h-4 w-4" />
-                Search audits, rules, and anomalies...
+                <span className="truncate">Search audits, rules, and anomalies...</span>
               </div>
               <button
                 type="button"

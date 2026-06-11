@@ -784,7 +784,7 @@ function RuleCard({
         enabled ? "border-[#c8c1ad]" : "border-[#e6e0d2] opacity-65"
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-[5px] bg-[#18120a] px-3 py-2 font-mono text-xs font-semibold text-[#f5f2eb]">
@@ -870,8 +870,8 @@ function InitialUploadScreen({
   ];
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-[#f1ede4] text-[#18120a]">
-      <div className="grid h-full min-h-0 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <main className="min-h-[100dvh] bg-[#f1ede4] text-[#18120a]">
+      <div className="grid min-h-[100dvh] lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden min-h-0 border-r border-white/10 bg-[#0e0e10] px-5 py-6 text-[#f5f2eb] lg:flex lg:flex-col">
           <CanaryLogo variant="inline" surface="dark" showTagline={false} />
 
@@ -1062,7 +1062,7 @@ function OnboardingShell({
                 <span className="text-[#8a847b]">›</span>
                 <span className="truncate font-semibold text-[#18120a]">{projectLabel}</span>
               </div>
-              <div className="min-w-[220px] rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-3 py-2 text-sm text-[#8a847b]">
+              <div className="hidden min-w-0 rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-3 py-2 text-sm text-[#8a847b] sm:block sm:w-[min(36vw,20rem)]">
                 Search parameters...
               </div>
             </div>
@@ -1176,16 +1176,16 @@ function RuleDefinitionOnboarding({
 
   return (
     <div className="min-h-[calc(100dvh-142px)] bg-[#f1ede4] px-5 py-5 text-[#18120a]">
-      <div className="mx-auto grid min-h-[calc(100dvh-40px)] max-w-[1600px] gap-7 lg:grid-cols-[minmax(0,1fr)_440px]">
-        <section className="rounded-[8px] border border-[#e6e0d2] bg-[#f5f2eb] p-7 lg:p-10">
+      <div className="mx-auto grid min-h-[calc(100dvh-40px)] max-w-[1600px] gap-5 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-7">
+        <section className="rounded-[8px] border border-[#e6e0d2] bg-[#f5f2eb] p-5 sm:p-7 lg:p-10">
           <div className="mb-9 flex flex-wrap items-start justify-between gap-5">
             <div className="space-y-4">
               <div className="font-mono text-sm uppercase tracking-[0.35em] text-[#8a847b]">Step 03 // Define Rules</div>
-              <h1 className="text-5xl font-semibold tracking-normal text-[#18120a] md:text-6xl">
+              <h1 className="text-4xl font-semibold tracking-normal text-[#18120a] md:text-6xl">
                 What should we <span className="text-[#d4a94a]">audit</span>?
               </h1>
             </div>
-            <div className="space-y-2 text-right">
+            <div className="space-y-2 sm:text-right">
               <div className="font-mono text-xs uppercase tracking-[0.35em] text-[#8a847b]">Dataset</div>
               <div className="max-w-[20rem] rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] px-4 py-3 font-mono text-sm text-[#a27820]">
                 {context.file.original_name}
@@ -1193,7 +1193,7 @@ function RuleDefinitionOnboarding({
             </div>
           </div>
 
-          <div className="flex min-h-[620px] flex-col gap-5">
+          <div className="flex flex-col gap-5 lg:min-h-[620px]">
             <InitialAiSummary file={context.file} draftRules={draftRules} />
 
             <div className="flex-1 space-y-4 overflow-y-auto pr-1">
@@ -1279,8 +1279,8 @@ function RuleDefinitionOnboarding({
           </div>
         </section>
 
-        <aside className="rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] p-6">
-          <div className="mb-6 flex items-start justify-between gap-4">
+        <aside className="rounded-[8px] border border-[#e6e0d2] bg-[#fbf9f3] p-5 sm:p-6">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-2">
               <div className="font-mono text-sm uppercase tracking-[0.35em] text-[#8a847b]">Audit Rules</div>
               <p className="max-w-[18rem] text-sm leading-6 text-[#8a847b]">Auto-drafted from your data. Toggle to enable.</p>
@@ -1559,7 +1559,7 @@ function OnboardingResultsScreen({
           <div className="space-y-4">
             <div className="font-mono text-sm uppercase tracking-[0.35em] text-[#8a847b]">Step 05 // Results</div>
             <div>
-              <h1 className="text-5xl font-semibold tracking-normal text-[#18120a] md:text-6xl">Audit Results</h1>
+              <h1 className="text-4xl font-semibold tracking-normal text-[#18120a] md:text-6xl">Audit Results</h1>
               <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-[0.18em] text-[#8a847b]">
                 <span>{formatRunLabel(run?.id)}</span>
                 <span>Run date: {formatRunDate(run?.ran_at)}</span>

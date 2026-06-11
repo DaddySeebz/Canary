@@ -15,7 +15,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-6 border-b border-white/10">
+    <nav className="flex items-center gap-5 overflow-x-auto border-b border-white/10">
       {links.map((link) => {
         const href = `/projects/${projectId}${link.href}`;
         const isActive = pathname === href;
@@ -25,7 +25,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
             key={href}
             href={href}
             className={cn(
-              "relative py-4 text-sm font-medium text-slate-500 transition-colors hover:text-slate-950",
+              "relative shrink-0 py-4 text-sm font-medium text-slate-500 transition-colors hover:text-slate-950",
               isActive && "text-slate-950",
             )}
           >

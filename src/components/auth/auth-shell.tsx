@@ -133,8 +133,8 @@ function ActivityDigest() {
   ];
 
   return (
-    <figure className="max-w-[560px] rounded border border-white/7 border-l-2 border-l-[#d4a94a] bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] px-[26px] py-[22px]">
-      <div className="mb-3.5 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
+    <figure className="max-w-[560px] rounded border border-white/7 border-l-2 border-l-[#d4a94a] bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005))] px-5 py-[22px] sm:px-[26px]">
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
         <span className="inline-flex items-center gap-2 text-[#d4a94a]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#d4a94a] shadow-[0_0_0_6px_rgba(212,169,74,0.12)]" />
           OVERNIGHT · YOUR WORKSPACE
@@ -145,7 +145,7 @@ function ActivityDigest() {
         {rows.map((row, index) => (
           <div
             key={row.label}
-            className={`grid grid-cols-[14px_1fr_auto] items-center gap-3.5 border-white/7 py-3 ${
+            className={`grid grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-3.5 border-white/7 py-3 ${
               index === 0 ? "pt-1" : "border-t"
             }`}
           >
@@ -155,9 +155,9 @@ function ActivityDigest() {
               }`}
               aria-hidden="true"
             />
-            <div>
-              <div className="text-sm font-medium tracking-[-0.005em] text-[#f5f2eb]">{row.label}</div>
-              <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.06em] text-[#6d6c68]">
+            <div className="min-w-0">
+              <div className="break-words text-sm font-medium text-[#f5f2eb]">{row.label}</div>
+              <div className="mt-0.5 break-words font-mono text-[10px] uppercase tracking-[0.06em] text-[#6d6c68]">
                 {row.sub}
               </div>
             </div>
@@ -182,13 +182,13 @@ export function AuthShell({
     <main className="min-h-[100dvh] bg-[#0e0e10] text-[#f5f2eb]">
       <div className="grid min-h-[100dvh] grid-rows-[1fr_auto]">
         <div className="grid min-h-full lg:grid-cols-[1.05fr_1fr]">
-          <section className="relative flex flex-col gap-10 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-8 py-12 md:px-16 lg:px-20">
+          <section className="relative flex flex-col gap-8 overflow-hidden bg-[radial-gradient(ellipse_600px_380px_at_38%_14%,rgba(212,169,74,0.10),transparent_70%),radial-gradient(ellipse_500px_340px_at_18%_90%,rgba(212,169,74,0.04),transparent_70%)] px-5 py-10 sm:px-8 md:px-16 lg:gap-10 lg:px-20 lg:py-12">
             <Link href="/" className="inline-flex w-fit">
               <HomepageLogoLockup size={isSignup ? 49 : 42} />
             </Link>
 
             <div className="flex max-w-[640px] flex-col">
-              <h1 className="text-[64px] font-semibold leading-[0.98] tracking-[-0.03em] text-[#f5f2eb] md:text-[88px]">
+              <h1 className="text-[42px] font-semibold leading-[0.98] tracking-normal text-[#f5f2eb] sm:text-[56px] md:text-[72px] xl:text-[88px]">
                 {isSignup ? (
                   <>
                     Start Your First Audit in <span className="text-[#d4a94a]">15&nbsp;Minutes.</span>
@@ -199,7 +199,7 @@ export function AuthShell({
                   </>
                 )}
               </h1>
-              <p className="mt-8 max-w-[44ch] text-[19px] leading-[1.55] tracking-[-0.005em] text-[#a8a7a2]">
+              <p className="mt-6 max-w-[44ch] text-base leading-[1.55] text-[#a8a7a2] sm:mt-8 sm:text-[19px]">
                 {isSignup
                   ? "Stop finding out about data issues in board meetings. Empower your operations with instrumental precision."
                   : "Your audits never sleep. Six new flags surfaced overnight across your monitored files - log in to triage, dismiss, or escalate before the morning standup."}
@@ -209,10 +209,10 @@ export function AuthShell({
             {isSignup ? <Testimonial /> : <ActivityDigest />}
           </section>
 
-          <section className="flex items-center justify-center border-t border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.012),transparent_40%),#0e0e10] px-8 py-12 md:px-16 lg:border-l lg:border-t-0 lg:px-20">
+          <section className="flex items-center justify-center border-t border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.012),transparent_40%),#0e0e10] px-5 py-10 sm:px-8 md:px-16 lg:border-l lg:border-t-0 lg:px-20">
             <div className="w-full max-w-[460px]">
               <div>
-                <h2 className="font-[var(--font-space-grotesk)] text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-[#f5f2eb]">
+                <h2 className="font-[var(--font-space-grotesk)] text-3xl font-semibold leading-[1.05] tracking-normal text-[#f5f2eb] sm:text-4xl">
                   {isSignup ? "Create your account" : "Log in to Canary"}
                 </h2>
                 <p className="mt-3 text-sm leading-[1.55] text-[#a8a7a2]">
@@ -271,7 +271,7 @@ export function AuthShell({
                   .
                 </div>
               ) : (
-                <div className="mt-7 flex items-center justify-between border-t border-white/7 pt-[22px] font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
+                <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-white/7 pt-[22px] font-mono text-[10px] uppercase tracking-[0.12em] text-[#6d6c68]">
                   <span>ENTERPRISE SSO</span>
                   <Link href="/login" className="text-[#d4a94a]">
                     USE A SECURITY KEY →

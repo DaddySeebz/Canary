@@ -487,20 +487,19 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
               </div>
 
               <h1
+                className="text-[3rem] sm:text-[4.5rem] xl:text-[88px]"
                 style={{
-                  fontSize: 88,
                   lineHeight: 0.98,
                   fontWeight: 600,
                   maxWidth: "14ch",
                   marginBottom: 36,
-                  letterSpacing: "-0.025em",
                 }}
               >
                 Stop finding out about data issues in{" "}
                 <span style={{ color: "var(--amber)" }}>board meetings.</span>
               </h1>
 
-              <p style={{ fontSize: 20, lineHeight: 1.55, color: "var(--ink-dim)", maxWidth: "46ch", marginBottom: 44 }}>
+              <p className="text-[17px] md:text-[20px]" style={{ lineHeight: 1.55, color: "var(--ink-dim)", maxWidth: "46ch", marginBottom: 44 }}>
                 Canary is the instrumental early warning system for CRM exports, reconciliations, and pipeline logic.
                 Upload the file, define the checks in plain English, and catch the anomaly before it reaches the board
                 deck.
@@ -753,7 +752,7 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
           >
             03 · THE RULE LANGUAGE
           </div>
-          <h2 style={{ fontSize: 38, maxWidth: "22ch", marginBottom: 44, lineHeight: 1.05 }}>
+          <h2 className="text-[2rem] md:text-[38px]" style={{ maxWidth: "22ch", marginBottom: 44, lineHeight: 1.05 }}>
             Say it in plain English. Ship it as a durable check.
           </h2>
 
@@ -823,15 +822,16 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
               >
                 CANARY COMPILES
               </div>
-              <pre
-                className="font-mono-data whitespace-pre"
-                style={{
-                  fontSize: 13,
-                  lineHeight: 1.75,
-                  margin: 0,
-                  color: "var(--ink-dim)",
-                }}
-              >{`rule discount_cap_enterprise {
+              <div className="overflow-x-auto">
+                <pre
+                  className="font-mono-data min-w-max whitespace-pre"
+                  style={{
+                    fontSize: 13,
+                    lineHeight: 1.75,
+                    margin: 0,
+                    color: "var(--ink-dim)",
+                  }}
+                >{`rule discount_cap_enterprise {
   when tier = "Enterprise"
    and discount > 0.40
    and owner not_in approved_exceptions
@@ -839,6 +839,7 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
        alert    = "#data-ops-alerts"
        attach   = deal_id, owner, acv
 }`}</pre>
+              </div>
               <div
                 className="font-mono-data"
                 style={{
@@ -870,7 +871,7 @@ export function LandingPage({ hasWorkspace }: { hasWorkspace: boolean }) {
               >
                 04 · GET STARTED
               </div>
-              <h2 style={{ fontSize: 56, maxWidth: "16ch", lineHeight: 1.04, fontWeight: 600 }}>
+              <h2 className="text-[2.5rem] md:text-[56px]" style={{ maxWidth: "16ch", lineHeight: 1.04, fontWeight: 600 }}>
                 Make the next close <span style={{ color: "var(--amber)" }}>boring.</span>
               </h2>
               <p style={{ fontSize: 15, color: "var(--ink-dim)", marginTop: 18, maxWidth: "52ch" }}>
