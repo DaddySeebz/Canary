@@ -16,6 +16,7 @@ import { CreateProjectDialog } from "@/components/projects/create-project-dialog
 import { Badge } from "@/components/ui/badge";
 import { requireUserId } from "@/lib/auth";
 import { listProjectsWithStats } from "@/lib/db/projects";
+import { isAiConfigured } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -122,7 +123,7 @@ export default async function ProjectsIndexPage() {
   const projects = await listProjectsWithStats(userId);
 
   if (projects.length === 0) {
-    return <InitialUploadOnboarding />;
+    return <InitialUploadOnboarding aiEnabled={isAiConfigured()} />;
   }
 
   const model = getProjectsLandingModel(projects);

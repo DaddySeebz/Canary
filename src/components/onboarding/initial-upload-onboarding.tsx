@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 
 import { CanaryLogo } from "@/components/branding/canary-logo";
 import { toast } from "@/components/ui/sonner";
+import { getChatErrorMessage } from "@/lib/ai/chat-errors";
 import {
   buildResultIssues,
   countResultSeverities,
@@ -1106,6 +1107,7 @@ function RuleDefinitionOnboarding({
   onConversationRulesChange,
   onToggleConversationRule,
   onRunAudit,
+  aiEnabled = true,
 }: {
   context: ProjectContext;
   draftRules: DraftRule[];
@@ -1116,6 +1118,7 @@ function RuleDefinitionOnboarding({
   onConversationRulesChange: (rules: ConversationRule[]) => void;
   onToggleConversationRule: (rule: ConversationRule) => Promise<void>;
   onRunAudit: () => void;
+  aiEnabled?: boolean;
 }) {
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -1135,8 +1138,9 @@ function RuleDefinitionOnboarding({
       await loadConversationRules();
     },
     onError: (error) => {
-      setChatError(error.message || "AI rule authoring is unavailable.");
-      toast.error(error.message || "AI rule authoring is unavailable.");
+      const message = getChatErrorMessage(error, "AI rule authoring is unavailable.");
+      setChatError(message);
+      toast.error(message);
     },
   });
 
@@ -1144,7 +1148,7 @@ function RuleDefinitionOnboarding({
   const activeConversationCount = conversationRules.filter((rule) => rule.active).length;
   const enabledCount = selectedDraftCount + activeConversationCount;
   const totalCount = draftRules.length + conversationRules.length;
-  const canSend = input.trim().length > 0 && (status === "ready" || status === "error");
+  const canSend = aiEnabled && input.trim().length > 0 && (status === "ready" || status === "error");
 
   async function loadConversationRules() {
     const response = await fetch(`/api/projects/${context.projectId}/rules`);
@@ -1165,7 +1169,7 @@ function RuleDefinitionOnboarding({
     event.preventDefault();
     const value = input.trim();
 
-    if (!value) {
+    if (!value || !aiEnabled) {
       return;
     }
 
@@ -1240,13 +1244,23 @@ function RuleDefinitionOnboarding({
                 {chatError}
               </div>
             ) : null}
+            {!aiEnabled ? (
+              <div className="rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] px-4 py-3 text-sm leading-6 text-[#5a544c]">
+                AI rule drafting is disabled on this deployment until `OPENROUTER_API_KEY` is configured.
+              </div>
+            ) : null}
 
             <form className="rounded-[8px] border border-[#d8d2c2] bg-[#fbf9f3] p-4" onSubmit={handleSubmit}>
               <textarea
                 value={input}
                 rows={3}
+                disabled={!aiEnabled}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Add source context or ask Canary to create another rule."
+                placeholder={
+                  aiEnabled
+                    ? "Add source context or ask Canary to create another rule."
+                    : "AI rule drafting is unavailable until the deployment has an AI key."
+                }
                 className="block w-full resize-none bg-transparent text-sm leading-6 text-[#18120a] outline-none placeholder:text-[#8a847b]"
               />
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -1254,6 +1268,7 @@ function RuleDefinitionOnboarding({
                   <button
                     type="button"
                     className="rounded-full border border-[#d8d2c2] px-3 py-1.5 text-xs font-medium text-[#5a544c] hover:bg-[#f5f2eb]"
+                    disabled={!aiEnabled}
                     onClick={() => setInput("Suggest one more critical rule for this dataset.")}
                   >
                     Suggest more
@@ -1261,6 +1276,7 @@ function RuleDefinitionOnboarding({
                   <button
                     type="button"
                     className="rounded-full border border-[#d8d2c2] px-3 py-1.5 text-xs font-medium text-[#5a544c] hover:bg-[#f5f2eb]"
+                    disabled={!aiEnabled}
                     onClick={() => setInput("What business definitions do you need before this audit runs?")}
                   >
                     Ask for context
@@ -1679,7 +1695,7 @@ function OnboardingResultsScreen({
   );
 }
 
-export function InitialUploadOnboarding() {
+export function InitialUploadOnboarding({ aiEnabled = true }: { aiEnabled?: boolean }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -2557,6 +2573,7 @@ export function InitialUploadOnboarding() {
           selectedRuleIds={selectedRuleIds}
           conversationRules={conversationRules}
           isFinalizing={isFinalizing}
+          aiEnabled={aiEnabled}
           onToggleDraft={toggleDraftRule}
           onConversationRulesChange={setConversationRules}
           onToggleConversationRule={toggleConversationRule}

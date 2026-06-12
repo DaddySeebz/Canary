@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { DefaultChatTransport } from "ai";
 import { useChat } from "@ai-sdk/react";
-import { Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { getChatErrorMessage } from "@/lib/ai/chat-errors";
 
 function DisabledRuleChat() {
   return (
@@ -31,6 +32,7 @@ function DisabledRuleChat() {
 function EnabledRuleChat({ projectId }: { projectId: string }) {
   const router = useRouter();
   const [input, setInput] = useState("");
+  const [chatError, setChatError] = useState<string | null>(null);
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -43,7 +45,11 @@ function EnabledRuleChat({ projectId }: { projectId: string }) {
   const { messages, sendMessage, status } = useChat({
     transport,
     onFinish: () => {
+      setChatError(null);
       router.refresh();
+    },
+    onError: (error) => {
+      setChatError(getChatErrorMessage(error, "AI rule drafting is temporarily unavailable."));
     },
   });
 
@@ -54,6 +60,7 @@ function EnabledRuleChat({ projectId }: { projectId: string }) {
       return;
     }
 
+    setChatError(null);
     setInput("");
     await sendMessage({ text: value });
   }
@@ -115,6 +122,12 @@ function EnabledRuleChat({ projectId }: { projectId: string }) {
           </div>
         ))}
       </div>
+      {chatError ? (
+        <div className="flex items-start gap-2 rounded-[0.75rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{chatError}</span>
+        </div>
+      ) : null}
       <form className="space-y-3" onSubmit={handleSubmit}>
         <Textarea
           value={input}

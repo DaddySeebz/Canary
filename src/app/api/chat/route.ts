@@ -1,106 +1,91 @@
 import { auth } from "@clerk/nextjs/server";
 import {
+  consumeStream,
   convertToModelMessages,
   stepCountIs,
   streamText,
   tool,
   type UIMessage,
 } from "ai";
-import { z } from "zod";
 
-import { buildRuleSystemPrompt } from "@/lib/ai/system-prompt";
 import { getModel } from "@/lib/ai/provider";
-import { isAiConfigured } from "@/lib/env";
+import {
+  createRuleFromChatInput,
+  getSafeStreamErrorMessage,
+  jsonError,
+  parseRuleChatRequest,
+  stripUiMessageIds,
+} from "@/lib/ai/rule-chat";
+import { buildRuleSystemPrompt } from "@/lib/ai/system-prompt";
 import { logActivity } from "@/lib/db/activity";
-import { getProjectById } from "@/lib/db/projects";
-import { touchProject } from "@/lib/db/projects";
+import { getProjectById, touchProject } from "@/lib/db/projects";
 import { createRule } from "@/lib/db/rules";
-import { genericRuleSchema, validateRuleConfig } from "@/lib/rules/schemas";
+import { isAiConfigured } from "@/lib/env";
+import { genericRuleSchema } from "@/lib/rules/schemas";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const requestSchema = z.object({
-  projectId: z.string().min(1),
-  messages: z.array(z.custom<UIMessage>()),
-});
-
 export async function POST(request: Request) {
-  if (!isAiConfigured()) {
-    return new Response(
-      JSON.stringify({
-        error: "AI rule chat is not configured for this deployment.",
-        code: "ai_feature_disabled",
-      }),
-      {
-        status: 503,
-        headers: { "content-type": "application/json" },
-      },
-    );
-  }
-
   const { userId } = await auth();
 
   if (!userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
+    return jsonError("Unauthorized", "unauthorized", 401);
   }
 
-  const body = requestSchema.safeParse(await request.json());
+  if (!isAiConfigured()) {
+    return jsonError(
+      "AI rule chat is not configured for this deployment.",
+      "ai_feature_disabled",
+      503,
+    );
+  }
 
-  if (!body.success) {
-    return new Response(JSON.stringify({ error: body.error.flatten() }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+  const body = await parseRuleChatRequest(request);
+
+  if (!body.ok) {
+    return body.response;
   }
 
   if (!(await getProjectById(body.data.projectId, userId))) {
-    return new Response(JSON.stringify({ error: "Project not found" }), {
-      status: 404,
-      headers: { "content-type": "application/json" },
-    });
+    return jsonError("Project not found", "project_not_found", 404);
   }
 
-  const result = streamText({
-    model: getModel(),
-    system: await buildRuleSystemPrompt(body.data.projectId),
-    messages: await convertToModelMessages(
-      body.data.messages.map((message) => {
-        const { id, ...payload } = message as UIMessage & { id?: string };
-        void id;
-        return payload;
-      }),
-    ),
-    stopWhen: stepCountIs(3),
-    tools: {
-      create_rule: tool({
-        description: "Create a Canary audit rule for this project.",
-        inputSchema: genericRuleSchema,
-        execute: async (input) => {
-          const ruleConfig = validateRuleConfig(input.rule_type, input.rule_config);
-          const rule = await createRule({
-            projectId: body.data.projectId,
-            descriptionPlain: input.description_plain,
-            ruleType: input.rule_type,
-            ruleConfig,
-            severity: input.severity,
-          });
+  try {
+    const result = streamText({
+      model: getModel(),
+      system: await buildRuleSystemPrompt(body.data.projectId),
+      messages: await convertToModelMessages(stripUiMessageIds(body.data.messages) as UIMessage[]),
+      abortSignal: request.signal,
+      stopWhen: stepCountIs(3),
+      onError: ({ error }) => {
+        console.error("AI rule chat failed", error);
+      },
+      tools: {
+        create_rule: tool({
+          description: "Create a Canary audit rule for this project.",
+          inputSchema: genericRuleSchema,
+          execute: async (input) =>
+            createRuleFromChatInput(body.data.projectId, input, {
+              createRule,
+              touchProject,
+              logActivity,
+            }),
+        }),
+      },
+    });
 
-          await touchProject(body.data.projectId);
-          await logActivity(
-            body.data.projectId,
-            "rule.created.ai",
-            JSON.stringify({ ruleId: rule.id, ruleType: rule.rule_type }),
-          );
-
-          return rule;
-        },
-      }),
-    },
-  });
-
-  return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      originalMessages: body.data.messages,
+      consumeSseStream: consumeStream,
+      onError: getSafeStreamErrorMessage,
+    });
+  } catch (error) {
+    console.error("AI rule chat request failed", error);
+    return jsonError(
+      "AI rule drafting is temporarily unavailable.",
+      "ai_chat_failed",
+      500,
+    );
+  }
 }
